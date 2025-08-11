@@ -15,23 +15,23 @@ async function handleFormSubmission(event) {
   const submitButton = form.querySelector('button[type="submit"]');
   const originalButtonText = submitButton.textContent;
   
-  // Disable form and show loading state
-  setFormLoading(form, true);
-  submitButton.textContent = 'Sending...';
-  submitButton.disabled = true;
-  
   // Clear any previous messages
   clearFormMessages(form);
   
   try {
-    // Prepare form data
+    // Prepare form data BEFORE disabling inputs (disabled inputs are excluded from FormData)
     const formData = new FormData(form);
     
-    // Basic client-side validation
-    const validationResult = validateForm(formData);
+    // Basic client-side validation using direct input values (more robust with autofill)
+    const validationResult = validateForm(form, formData);
     if (!validationResult.isValid) {
       throw new Error(validationResult.message);
     }
+    
+    // Disable form and show loading state only after validation passes
+    setFormLoading(form, true);
+    submitButton.textContent = 'Sending...';
+    submitButton.disabled = true;
     
     // Submit form
     const response = await fetch(form.action, {
@@ -59,12 +59,19 @@ async function handleFormSubmission(event) {
   }
 }
 
-function validateForm(formData) {
+function validateForm(form, formData) {
   const requiredFields = ['name', 'email', 'message'];
+  const getValue = (fieldName) => {
+    const el = form.querySelector(`[name="${fieldName}"]`);
+    if (el && typeof el.value === 'string') return el.value;
+    // fallback to FormData if needed
+    const v = formData ? formData.get(fieldName) : null;
+    return typeof v === 'string' ? v : '';
+  };
   
   // Check required fields
   for (const field of requiredFields) {
-    const value = formData.get(field);
+    const value = getValue(field);
     if (!value || value.trim() === '') {
       return {
         isValid: false,
@@ -74,7 +81,7 @@ function validateForm(formData) {
   }
   
   // Validate email format
-  const email = formData.get('email');
+  const email = getValue('email');
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return {
@@ -83,8 +90,17 @@ function validateForm(formData) {
     };
   }
   
+  // Ensure hidden honeypot is empty (not filled by password managers)
+  const honeypot = getValue('honeypot');
+  if (honeypot) {
+    return {
+      isValid: false,
+      message: 'Spam detected. Please try again.'
+    };
+  }
+  
   // Check message length
-  const message = formData.get('message');
+  const message = getValue('message');
   if (message.length < 10) {
     return {
       isValid: false,
