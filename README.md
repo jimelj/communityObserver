@@ -272,3 +272,4 @@ This project is proprietary to Community Observer. All rights reserved.
 ---
 
 Build By JimelJ https://github.com/jimelj for the Community Observer newspaper.
+Support jjoseph@cbaol.com
