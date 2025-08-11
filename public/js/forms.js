@@ -36,16 +36,38 @@ async function handleFormSubmission(event) {
     // Submit form
     const response = await fetch(form.action, {
       method: 'POST',
-      body: formData
+      body: formData,
+      headers: { 'Accept': 'application/json' }
     });
     
-    const result = await response.json();
+    const contentType = response.headers.get('content-type') || '';
+    let result = null;
     
-    if (result.success) {
-      showFormMessage(form, result.message, 'success');
+    if (contentType.includes('application/json')) {
+      try {
+        result = await response.json();
+      } catch (e) {
+        // Fallback to text if JSON parsing fails
+        const text = await response.text();
+        throw new Error(text || 'Unexpected empty response from server.');
+      }
+    } else {
+      const text = await response.text();
+      if (!response.ok) {
+        throw new Error(text || `Request failed with status ${response.status}`);
+      }
+      // Non-JSON but OK response; treat as success with generic message
+      showFormMessage(form, 'Your message was sent.', 'success');
+      form.reset();
+      return;
+    }
+    
+    if (response.ok && result && result.success) {
+      showFormMessage(form, result.message || 'Your message was sent.', 'success');
       form.reset();
     } else {
-      throw new Error(result.message || 'An error occurred while sending your message.');
+      const errMsg = (result && result.message) || `Request failed with status ${response.status}`;
+      throw new Error(errMsg);
     }
     
   } catch (error) {
