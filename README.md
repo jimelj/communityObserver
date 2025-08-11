@@ -271,4 +271,4 @@ This project is proprietary to Community Observer. All rights reserved.
 
 ---
 
-Built with ❤️ for the Community Observer newspaper.
+Build By JimelJ https://github.com/jimelj for the Community Observer newspaper.

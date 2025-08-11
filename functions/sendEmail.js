@@ -116,7 +116,8 @@ async function handleContactForm(formData) {
   }
   
   return {
-    to: 'info@thecommunityobserver.com',
+    // to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
+    to: 'jjoseph@cbaol.com',
     subject: `Contact Form Submission from ${name}`,
     html: `
       <h2>New Contact Form Submission</h2>
