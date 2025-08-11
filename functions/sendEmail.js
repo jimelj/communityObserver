@@ -27,9 +27,6 @@ export async function onRequestPost(context) {
           status: 429 
         });
       }
-      
-      // Store current timestamp
-      await env.RATE_LIMIT.put(rateLimitKey, now.toString(), { expirationTtl: 3600 });
     }
     
     let emailData;
@@ -50,6 +47,10 @@ export async function onRequestPost(context) {
     const emailSent = await sendEmail(emailData, env);
     
     if (emailSent) {
+      // Only write rate-limit marker on successful send
+      if (env.RATE_LIMIT) {
+        await env.RATE_LIMIT.put(rateLimitKey, Date.now().toString(), { expirationTtl: 3600 });
+      }
       // Return success response
       return new Response(JSON.stringify({
         success: true,
@@ -117,7 +118,8 @@ async function handleContactForm(formData) {
   
   return {
     // to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
-    to: 'jjoseph@cbaol.com',
+    // to: 'jjoseph@cbaol.com',
+    to: 'jimelj@gmail.com',
     subject: `Contact Form Submission from ${name}`,
     html: `
       <h2>New Contact Form Submission</h2>
@@ -195,7 +197,10 @@ async function sendEmail(emailData, env) {
           reply_to: emailData.replyTo
         })
       });
-      
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        console.error('Resend error:', response.status, text);
+      }
       return response.ok;
     }
     
