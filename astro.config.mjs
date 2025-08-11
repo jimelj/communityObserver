@@ -1,12 +1,11 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
 import tailwind from '@astrojs/tailwind';
 
-// https://astro.build/config
+// For Cloudflare Pages with Pages Functions, use a static build so the
+// functions/ directory handles dynamic requests like /sendEmail.
 export default defineConfig({
-  output: 'hybrid',
+  output: 'static',
   integrations: [tailwind()],
-  adapter: cloudflare()
 });
 
