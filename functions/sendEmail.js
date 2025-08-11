@@ -186,7 +186,9 @@ async function sendEmail(emailData, env) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          from: 'noreply@thecommunityobserver.com',
+          // Resend requires a verified domain for the From address.
+          // Use the Resend onboarding sender for testing to avoid 422 errors.
+          from: 'onboarding@resend.dev',
           to: emailData.to,
           subject: emailData.subject,
           html: emailData.html,
