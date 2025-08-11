@@ -1,0 +1,115 @@
+---
+import Page from './Page.astro';
+import AdSlot from '../components/AdSlot.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  subtitle?: string;
+}
+
+const {
+  title,
+  description,
+  subtitle
+} = Astro.props;
+---
+
+<Page
+  title={`${title} | Community Observer`}
+  description={description}
+>
+  <div class="container mx-auto px-4 py-8">
+    
+    <!-- Page Header -->
+    <header class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-navy mb-4">
+        {title}
+      </h1>
+      {subtitle && (
+        <p class="text-xl text-brand-gray max-w-3xl mx-auto">
+          {subtitle}
+        </p>
+      )}
+    </header>
+
+    <!-- Top Leaderboard Ad -->
+    <AdSlot slot="top_leaderboard" className="mb-12" />
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      
+      <!-- Main Content Area -->
+      <main class="lg:col-span-3" role="main">
+        <slot />
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="lg:col-span-1" role="complementary" aria-label="Additional information and advertisements">
+        
+        <!-- Sidebar Ad -->
+        <AdSlot slot="sidebar_rect" className="mb-8" />
+        
+        <!-- Quick Links -->
+        <div class="card p-6 mb-6">
+          <h3 class="font-serif font-bold text-brand-navy mb-4">Quick Links</h3>
+          <nav class="space-y-3">
+            <a 
+              href="/submission-guidelines" 
+              class="block text-brand-gray hover:text-brand-navy transition-colors"
+            >
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Submit Content
+              </div>
+            </a>
+            
+            <a 
+              href="/contact" 
+              class="block text-brand-gray hover:text-brand-navy transition-colors"
+            >
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Contact Us
+              </div>
+            </a>
+            
+            <a 
+              href="/advertise" 
+              class="block text-brand-gray hover:text-brand-navy transition-colors"
+            >
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+                </svg>
+                Advertise
+              </div>
+            </a>
+          </nav>
+        </div>
+        
+
+        <!-- Contact Info -->
+        <div class="card p-4 sm:p-6 mt-6">
+          <h3 class="font-serif font-bold text-brand-navy mb-4 text-base sm:text-lg">Contact Information</h3>
+          <div class="space-y-4 text-sm sm:text-base text-brand-gray">
+            <div>
+              <p class="font-medium text-brand-navy mb-1">Editorial</p>
+              <p class="break-words overflow-wrap-anywhere hyphens-auto" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto;">janice@thecommunityobserver.com</p>
+              <p class="font-mono whitespace-nowrap">(732) 540-5308</p>
+            </div>
+            <div>
+              <p class="font-medium text-brand-navy mb-1">Customer Service</p>
+              <p class="break-words overflow-wrap-anywhere hyphens-auto" style="word-break: break-word; overflow-wrap: break-word; hyphens: auto;">info@thecommunityobserver.com</p>
+              <p class="font-mono whitespace-nowrap">(800) 376-6222</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</Page>
+

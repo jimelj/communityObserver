@@ -1,0 +1,86 @@
+---
+import { Image } from 'astro:assets';
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-brand-navy text-white mt-16">
+  <div class="container mx-auto px-4 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      
+      <!-- Logo and Description -->
+      <div class="lg:col-span-2">
+        <div class="flex items-center space-x-3 mb-4">
+          <Image 
+            src="/images/COLogo.jpg" 
+            alt="Community Observer Logo" 
+            width={40} 
+            height={40}
+            class="rounded"
+          />
+          <h3 class="text-xl font-serif font-bold">Community Observer</h3>
+        </div>
+        <p class="text-brand-light mb-4 max-w-md">
+          Your trusted local newspaper delivering community news, events, and stories that matter to your neighborhood. Published weekly with local content by and for the community.
+        </p>
+        <div class="flex space-x-4">
+          <a href="/files/media-kit.pdf" class="text-brand-light hover:text-white transition-colors">
+            Media Kit
+          </a>
+          <a href="/files/exec-letter.pdf" class="text-brand-light hover:text-white transition-colors">
+            Leadership Letter
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h4 class="font-semibold mb-4">Quick Links</h4>
+        <ul class="space-y-2">
+          <li><a href="/" class="text-brand-light hover:text-white transition-colors">Home</a></li>
+          <li><a href="/about" class="text-brand-light hover:text-white transition-colors">About Us</a></li>
+          <li><a href="/news" class="text-brand-light hover:text-white transition-colors">News</a></li>
+          <li><a href="/submission-guidelines" class="text-brand-light hover:text-white transition-colors">Submit Content</a></li>
+          <li><a href="/advertise" class="text-brand-light hover:text-white transition-colors">Advertise</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Information -->
+      <div>
+        <h4 class="font-semibold mb-4">Contact Us</h4>
+        <div class="space-y-3 text-brand-light">
+          <div>
+            <p class="font-medium">Editorial</p>
+            <p>Janice Seiferling</p>
+            <p>janice@thecommunityobserver.com</p>
+            <p>(732) 540-5308</p>
+          </div>
+          <div>
+            <p class="font-medium">Customer Service</p>
+            <p>info@thecommunityobserver.com</p>
+            <p>(800) 376-6222</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="border-t border-brand-gray/30 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
+      <p class="text-brand-light text-sm">
+        © {currentYear} Community Observer. All rights reserved.
+      </p>
+      <div class="flex space-x-6 mt-4 md:mt-0">
+        <a href="/privacy" class="text-brand-light hover:text-white text-sm transition-colors">
+          Privacy Policy
+        </a>
+        <a href="/terms" class="text-brand-light hover:text-white text-sm transition-colors">
+          Terms of Service
+        </a>
+        <a href="/sitemap.xml" class="text-brand-light hover:text-white text-sm transition-colors">
+          Sitemap
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+

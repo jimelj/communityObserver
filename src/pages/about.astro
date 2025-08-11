@@ -1,0 +1,148 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="About Community Observer - Your Local News Source"
+  description="Learn about Community Observer's mission to bring back traditional local newspapers with community-focused content, delivered weekly to your neighborhood."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="About Community Observer"
+    subtitle="Our Mission"
+    description="Bringing back the tradition of local newspapers with stories that matter to your community."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Main Content -->
+      <div class="prose prose-lg mx-auto mb-16">
+        <h2 class="text-3xl font-serif font-bold text-brand-navy mb-8">Our Story</h2>
+        
+        <p class="text-xl leading-relaxed text-brand-gray mb-8">
+          Our company started over 40 years ago as a community newspaper and gradually focused on managing print advertising in partnership with newspapers throughout New Jersey. As we know, newspapers across the country have been going out of print, such as our former partner, the Star Ledger.
+        </p>
+        
+        <p class="text-lg leading-relaxed text-brand-gray mb-8">
+          While we understand most people getting their news instantly on their mobile devices, our communities are losing something: the traditional local paper with local content. Major state and national news are easily accessible, but the events and activities in your community are not.
+        </p>
+        
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">What We Offer</h3>
+        
+        <p class="text-lg leading-relaxed text-brand-gray mb-6">
+          Beginning this September, we introduced Community Observer, a weekly community newspaper with stories about your community, many submitted by YOU! Our paper answers the questions that matter most to local residents:
+        </p>
+        
+        <ul class="space-y-3 text-brand-gray mb-8">
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            What's happening in local youth sports?
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            What events are coming up in my community?
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            What organizations have activities in my town?
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Are there events and activities for seniors near me?
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            How can I let my neighbors know about my event or major accomplishment?
+          </li>
+          <li class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-1 text-brand-navy flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            What is my town council working on to improve my community?
+          </li>
+        </ul>
+        
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Our Format</h3>
+        
+        <p class="text-lg leading-relaxed text-brand-gray mb-8">
+          Community Observer is a weekly, 8-page, print newspaper delivered to the residents of your community by newspaper carriers. Included in Community Observer will be valuable information on sale pricing and coupons from local businesses. Our paper will be a one-stop destination for news about what's happening in your community and opportunities to save on groceries, dining out, and other activities near you.
+        </p>
+        
+        <div class="bg-brand-light/20 rounded-lg p-8 mb-8">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-4">Our Commitment</h3>
+          <p class="text-lg leading-relaxed text-brand-gray mb-4">
+            Local newspapers are an American tradition, and we are excited to bring them back in your community! We look forward to being a valuable part of your community.
+          </p>
+          <p class="text-brand-gray font-medium">
+            — Jim Knoll, Senior Vice President
+          </p>
+        </div>
+      </div>
+
+      <!-- Call to Action Section -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div class="card p-8 text-center">
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Read the Full Letter</h3>
+          <p class="text-brand-gray mb-6">
+            Get the complete message from our leadership about our vision and commitment to the community.
+          </p>
+          <a href="/leadership-letter" class="btn-primary">
+            Leadership Letter
+          </a>
+        </div>
+        
+        <div class="card p-8 text-center">
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Get Involved</h3>
+          <p class="text-brand-gray mb-6">
+            Learn how you can contribute stories, photos, and content to your community newspaper.
+          </p>
+          <a href="/submission-guidelines" class="btn-secondary">
+            Submission Guidelines
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="bg-gradient-to-br from-brand-navy to-brand-gray text-white rounded-2xl p-8">
+        <div class="text-center mb-8">
+          <h3 class="text-2xl font-serif font-bold mb-4">Contact Information</h3>
+          <p class="text-brand-light">
+            For more information on submission of photos and articles or delivery information
+          </p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="text-center">
+            <h4 class="font-semibold mb-3">Website</h4>
+            <p class="text-brand-light">thecommunityobserver.com</p>
+          </div>
+          
+          <div class="text-center">
+            <h4 class="font-semibold mb-3">Email</h4>
+            <p class="text-brand-light">info@mycommunityobserver.com</p>
+          </div>
+        </div>
+        
+        <div class="text-center mt-8">
+          <a href="/contact" class="bg-white text-brand-navy px-8 py-3 rounded-lg font-semibold hover:bg-brand-light transition-colors">
+            Contact Us Today
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+

@@ -1,0 +1,176 @@
+---
+import Listing from '../layouts/Listing.astro';
+import Card from '../components/Card.astro';
+import AdSlot from '../components/AdSlot.astro';
+import { getAllArticles, getFeaturedArticle, getRegularArticles, getUniqueCategories } from '../utils/articles.js';
+
+// Load articles from JSON files
+const allArticles = await getAllArticles();
+const featuredAnnouncement = await getFeaturedArticle();
+const regularAnnouncements = await getRegularArticles();
+const categories = getUniqueCategories(allArticles);
+---
+
+<Listing
+  title="Community News & Announcements"
+  description="Stay updated with the latest news, events, and announcements from your local community. From youth sports to town council meetings, we cover what matters to you."
+>
+  <!-- Page Header -->
+  <div class="bg-gradient-to-br from-brand-navy to-brand-gray text-white py-16">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl font-serif font-bold mb-6">
+          Community News
+        </h1>
+        <p class="text-xl text-brand-light mb-8">
+          Stay connected with everything happening in your neighborhood
+        </p>
+        
+        <!-- Category Filter Buttons -->
+        <div class="flex flex-wrap justify-center gap-2 mb-8">
+          <button class="category-filter active bg-white text-brand-navy px-4 py-2 rounded-full font-medium hover:bg-brand-light transition-colors" data-category="all">
+            All News
+          </button>
+          {categories.map(category => (
+            <button class={`category-filter bg-brand-navy/20 text-white px-4 py-2 rounded-full font-medium hover:bg-white hover:text-brand-navy transition-colors capitalize`} data-category={category}>
+              {category}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Banner Ad -->
+  <div class="container mx-auto px-4 py-8">
+    <AdSlot slot="top_leaderboard" className="mx-auto" />
+  </div>
+
+  <!-- Main Content -->
+  <div class="container mx-auto px-4 py-12">
+    <div class="grid lg:grid-cols-4 gap-8">
+      <!-- Main Content Area -->
+      <div class="lg:col-span-3">
+        <!-- Featured Story -->
+        {featuredAnnouncement && (
+          <section class="mb-12">
+            <div class="bg-brand-navy text-white px-4 py-2 inline-block rounded-t-lg">
+              <span class="font-bold text-sm uppercase tracking-wide">Featured Story</span>
+            </div>
+            <Card
+              title={featuredAnnouncement.title}
+              excerpt={featuredAnnouncement.excerpt}
+              date={featuredAnnouncement.date}
+              author={featuredAnnouncement.author}
+              category={featuredAnnouncement.category}
+              tags={featuredAnnouncement.tags}
+              image={featuredAnnouncement.image}
+              href={featuredAnnouncement.href}
+              featured={true}
+              class={`featured-card category-${featuredAnnouncement.category} border-2 border-brand-navy rounded-t-none`}
+            />
+          </section>
+        )}
+
+        <!-- Regular Articles Grid -->
+        <section>
+          <h2 class="text-2xl font-serif font-bold text-brand-navy mb-8">Latest Community News</h2>
+          <div class="grid md:grid-cols-2 gap-8" id="articles-grid">
+            {regularAnnouncements.map(announcement => (
+              <Card
+                title={announcement.title}
+                excerpt={announcement.excerpt}
+                date={announcement.date}
+                author={announcement.author}
+                category={announcement.category}
+                tags={announcement.tags}
+                image={announcement.image}
+                href={announcement.href}
+                featured={false}
+                class={`article-card category-${announcement.category}`}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:col-span-1">
+        <!-- Ad Slot -->
+        <div class="mb-8">
+          <div class="bg-brand-light/20 border-2 border-dashed border-brand-light rounded-lg p-8 text-center">
+            <p class="text-brand-gray text-sm uppercase tracking-wide mb-2">Advertisement</p>
+            <div class="bg-brand-light/30 rounded h-64 flex items-center justify-center">
+              <span class="text-brand-gray">Advertisement<br/>300x250</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="bg-white rounded-lg shadow-sm border border-brand-light p-6">
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-4">Quick Links</h3>
+          <div class="space-y-3">
+            <a href="/contact" class="flex items-center text-brand-gray hover:text-brand-navy transition-colors">
+              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Submit Content
+            </a>
+            <a href="/contact" class="flex items-center text-brand-gray hover:text-brand-navy transition-colors">
+              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Contact Us
+            </a>
+            <a href="/advertise" class="flex items-center text-brand-gray hover:text-brand-navy transition-colors">
+              <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+              </svg>
+              Advertise
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Listing>
+
+<script>
+  // Category filtering functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterButtons = document.querySelectorAll('.category-filter');
+    const articleCards = document.querySelectorAll('.article-card');
+    const featuredCard = document.querySelector('.featured-card');
+    
+    filterButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const category = this.getAttribute('data-category');
+        
+        // Update active button
+        filterButtons.forEach(btn => btn.classList.remove('active', 'bg-white', 'text-brand-navy'));
+        filterButtons.forEach(btn => btn.classList.add('bg-brand-navy/20', 'text-white'));
+        this.classList.add('active', 'bg-white', 'text-brand-navy');
+        this.classList.remove('bg-brand-navy/20', 'text-white');
+        
+        // Filter articles
+        articleCards.forEach(card => {
+          if (category === 'all' || card.classList.contains(`category-${category}`)) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Filter featured card if present
+        if (featuredCard) {
+          if (category === 'all' || featuredCard.classList.contains(`category-${category}`)) {
+            featuredCard.style.display = 'block';
+          } else {
+            featuredCard.style.display = 'none';
+          }
+        }
+      });
+    });
+  });
+</script>
+

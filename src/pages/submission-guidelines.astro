@@ -1,0 +1,382 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="Submission Guidelines - Community Observer"
+  description="Learn how to submit stories, photos, and announcements to Community Observer. Guidelines for community contributors and local organizations."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Submission Guidelines"
+    subtitle="Share Your Community Stories"
+    description="Help us bring local news back to your community. Learn how to submit stories, photos, and announcements."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    
+    <!-- Introduction -->
+    <div class="max-w-4xl mx-auto text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-6">
+        Your Stories Matter
+      </h2>
+      <p class="text-xl text-brand-gray mb-8">
+        Community Observer thrives on stories from residents like you. We welcome submissions about 
+        local events, achievements, sports, community organizations, and everything that makes your 
+        neighborhood special.
+      </p>
+    </div>
+
+    <!-- What We're Looking For -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+      <div class="card p-8">
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">What We're Looking For</h3>
+        
+        <div class="space-y-6">
+          <div class="border-l-4 border-brand-navy pl-6">
+            <h4 class="font-bold text-brand-navy mb-2">Community Events</h4>
+            <p class="text-brand-gray text-sm">
+              Upcoming festivals, fundraisers, town meetings, library programs, and community gatherings.
+            </p>
+          </div>
+          
+          <div class="border-l-4 border-brand-light pl-6">
+            <h4 class="font-bold text-brand-navy mb-2">Youth Sports</h4>
+            <p class="text-brand-gray text-sm">
+              Game results, tournament highlights, team achievements, and player spotlights.
+            </p>
+          </div>
+          
+          <div class="border-l-4 border-brand-light pl-6">
+            <h4 class="font-bold text-brand-navy mb-2">Local Business News</h4>
+            <p class="text-brand-gray text-sm">
+              New openings, expansions, community partnerships, and business achievements.
+            </p>
+          </div>
+          
+          <div class="border-l-4 border-brand-light pl-6">
+            <h4 class="font-bold text-brand-navy mb-2">Personal Achievements</h4>
+            <p class="text-brand-gray text-sm">
+              Graduations, awards, promotions, military service, and community recognition.
+            </p>
+          </div>
+          
+          <div class="border-l-4 border-brand-light pl-6">
+            <h4 class="font-bold text-brand-navy mb-2">Organization Updates</h4>
+            <p class="text-brand-gray text-sm">
+              Club meetings, volunteer opportunities, charity drives, and membership drives.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-8">
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Submission Types</h3>
+        
+        <div class="space-y-6">
+          <div class="flex items-start">
+            <div class="bg-brand-navy/10 rounded-full w-10 h-10 flex items-center justify-center mr-4 mt-1">
+              <svg class="w-5 h-5 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-brand-navy mb-2">News Articles</h4>
+              <p class="text-brand-gray text-sm">
+                Full stories with details, quotes, and background information. 300-800 words preferred.
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="bg-brand-navy/10 rounded-full w-10 h-10 flex items-center justify-center mr-4 mt-1">
+              <svg class="w-5 h-5 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-brand-navy mb-2">Photo Submissions</h4>
+              <p class="text-brand-gray text-sm">
+                High-resolution images with captions and photo credits. Action shots and candid moments preferred.
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="bg-brand-navy/10 rounded-full w-10 h-10 flex items-center justify-center mr-4 mt-1">
+              <svg class="w-5 h-5 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-brand-navy mb-2">Event Announcements</h4>
+              <p class="text-brand-gray text-sm">
+                Brief announcements with date, time, location, and contact information. 100-200 words.
+              </p>
+            </div>
+          </div>
+          
+          <div class="flex items-start">
+            <div class="bg-brand-navy/10 rounded-full w-10 h-10 flex items-center justify-center mr-4 mt-1">
+              <svg class="w-5 h-5 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <h4 class="font-bold text-brand-navy mb-2">Calendar Listings</h4>
+              <p class="text-brand-gray text-sm">
+                Recurring events, meeting schedules, and ongoing programs. Include all relevant details.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submission Guidelines -->
+    <div class="max-w-4xl mx-auto mb-16">
+      <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-8 text-center">
+        Submission Guidelines
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Content Guidelines -->
+        <div class="card p-6">
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Content Guidelines</h3>
+          <ul class="space-y-3 text-brand-gray">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Keep content family-friendly and community-focused</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Include accurate dates, times, and contact information</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Provide proper attribution for quotes and sources</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Write in third person for news articles</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Avoid promotional language in news content</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Technical Requirements -->
+        <div class="card p-6">
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Technical Requirements</h3>
+          <ul class="space-y-3 text-brand-gray">
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Submit text in Word document or email body</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Photos must be high-resolution (300 DPI minimum)</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Include photo captions and photographer credit</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Provide your contact information for follow-up</span>
+            </li>
+            <li class="flex items-start">
+              <svg class="w-5 h-5 mr-3 text-brand-navy mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-sm">Submit at least one week before publication</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deadlines and Schedule -->
+    <div class="bg-gradient-to-br from-brand-light/20 to-brand-paper rounded-2xl p-8 mb-16">
+      <div class="max-w-3xl mx-auto text-center">
+        <h2 class="text-3xl font-serif font-bold text-brand-navy mb-6">
+          Publication Schedule & Deadlines
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <div class="bg-brand-navy text-white rounded-lg p-4 mb-4">
+              <h3 class="font-bold">Weekly Publication</h3>
+            </div>
+            <p class="text-brand-gray text-sm">
+              Community Observer is published every Wednesday and delivered to homes by Friday.
+            </p>
+          </div>
+          
+          <div>
+            <div class="bg-brand-navy text-white rounded-lg p-4 mb-4">
+              <h3 class="font-bold">Submission Deadline</h3>
+            </div>
+            <p class="text-brand-gray text-sm">
+              All content must be submitted by 5:00 PM on the Friday before publication.
+            </p>
+          </div>
+          
+          <div>
+            <div class="bg-brand-navy text-white rounded-lg p-4 mb-4">
+              <h3 class="font-bold">Event Listings</h3>
+            </div>
+            <p class="text-brand-gray text-sm">
+              Submit event announcements at least two weeks in advance for best placement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How to Submit -->
+    <div class="max-w-4xl mx-auto">
+      <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-8 text-center">
+        How to Submit Your Content
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Email Submission -->
+        <div class="card p-8">
+          <div class="text-center mb-6">
+            <div class="bg-brand-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-brand-navy">Email Submission</h3>
+          </div>
+          
+          <div class="space-y-4 mb-6">
+            <div class="text-center">
+              <p class="font-medium text-brand-navy mb-2">Editorial Email</p>
+              <a href="mailto:janice@thecommunityobserver.com" class="text-brand-navy hover:underline text-lg">
+                janice@thecommunityobserver.com
+              </a>
+            </div>
+            
+            <div class="border-t border-brand-light pt-4">
+              <p class="text-brand-gray text-sm mb-3">
+                <strong>Subject Line Format:</strong> [Category] - [Brief Description]
+              </p>
+              <p class="text-brand-gray text-sm">
+                Example: "Youth Sports - Little League Championship Results"
+              </p>
+            </div>
+          </div>
+          
+          <a 
+            href="mailto:janice@thecommunityobserver.com?subject=[Category] - Brief Description" 
+            class="btn-primary w-full text-center"
+          >
+            Send Email Submission
+          </a>
+        </div>
+
+        <!-- Contact Form -->
+        <div class="card p-8">
+          <div class="text-center mb-6">
+            <div class="bg-brand-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-brand-navy">Online Form</h3>
+          </div>
+          
+          <div class="space-y-4 mb-6">
+            <p class="text-brand-gray text-sm text-center">
+              Use our online contact form to submit stories, photos, and announcements. 
+              You can attach files and provide detailed information about your submission.
+            </p>
+            
+            <div class="border-t border-brand-light pt-4">
+              <ul class="space-y-2 text-brand-gray text-sm">
+                <li class="flex items-center">
+                  <svg class="w-4 h-4 mr-2 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Attach multiple files
+                </li>
+                <li class="flex items-center">
+                  <svg class="w-4 h-4 mr-2 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Detailed submission form
+                </li>
+                <li class="flex items-center">
+                  <svg class="w-4 h-4 mr-2 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Automatic confirmation
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <a href="/contact" class="btn-secondary w-full text-center">
+            Use Contact Form
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Editorial Policy -->
+    <div class="mt-16 max-w-4xl mx-auto">
+      <div class="card p-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-6 text-center">
+          Editorial Policy
+        </h2>
+        <div class="prose prose-lg mx-auto text-brand-gray">
+          <p class="mb-4">
+            Community Observer reserves the right to edit all submissions for length, clarity, and style. 
+            We strive to maintain the original intent and voice of contributors while ensuring consistency 
+            with our editorial standards.
+          </p>
+          <p class="mb-4">
+            All submissions become the property of Community Observer upon publication. We may use 
+            submitted content in print, online, and promotional materials. Contributors will be credited 
+            appropriately.
+          </p>
+          <p class="mb-4">
+            We do not guarantee publication of all submissions. Content selection is based on 
+            newsworthiness, community interest, space availability, and editorial judgment.
+          </p>
+          <p>
+            For questions about our editorial policy or submission guidelines, please contact our 
+            editorial team at <a href="mailto:janice@thecommunityobserver.com" class="text-brand-navy hover:underline">janice@thecommunityobserver.com</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+

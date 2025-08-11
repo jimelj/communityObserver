@@ -1,0 +1,42 @@
+# ----- OS / Editor -----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ----- Node / JS -----
+node_modules/
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ----- Builds / Caches -----
+dist/
+.astro/
+.cache/
+.temp/
+.tmp/
+
+# ----- Environment / Secrets -----
+.env
+.env.*
+!.env.example
+.dev.vars
+.wrangler/
+
+# ----- Testing / Coverage -----
+coverage/
+*.lcov
+
+# ----- Misc -----
+*.local
+*.swp
+*~
+
+# Keep lockfiles committed
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml

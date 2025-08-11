@@ -1,0 +1,173 @@
+Prompt — Build “Community Observer” Static Website
+You are building a modern, static website for a local newspaper called Community
+Observer.
+Tech Stack & Hosting
+1. Framework: Astro
+2. Styling: Tailwind CSS (brand colors from masthead)
+3. Hosting: Cloudflare Pages (Astro preset, build output to dist/)
+4. Forms: Cloudflare Worker using MailChannels (FROM_EMAIL, TO_EMAIL)
+5. Analytics: Cloudflare Web Analytics (cookie-free)
+6. No CMS now — all content in MD/MDX with front-matter; must be CMS-ready later.
+Important:
+- After scaffolding, I will upload:
+1) CO Media Kit.docx
+2) CO Exec Letter.docx
+3) Masthead logo image (extract brand colors + integrate logo in header and favicon)
+- Convert docs to PDFs in /public/files/ and generate web pages from their contents, auto-
+filling related sections (details below).
+- If docs/logo aren’t yet uploaded, scaffold placeholders with TODO markers and link stubs.
+1. Brand & Style
+- Colors (from masthead): navy #1E3551, cool gray #6F7F8C, light gray-blue #BFCBD1,
+near-white #FDFEFD
+- Fonts: Merriweather (serif headlines), Inter (sans body/UI)
+- Layout: clean, spacious, high contrast, minimal shadows, accessible focus styles
+- Use masthead logo in site header, favicon, and OG image
+2. Project Structure
+public/
+favicon.ico
+robots.txt
+files/
+media-kit.pdf
+exec-letter.pdf
+distribution-map.pdf
+src/
+content/
+announcements/ # MDX mock posts
+pages/ # about, legal, submission-guidelines
+
+
+--- PAGE 1 ---
+
+assets/images/ # masthead, heroes, logos
+components/ # Header, Footer, Nav, Hero, Card, Seo, AdSlot, Forms, ContactCard
+layouts/ # Page, Article, Listing
+data/adSlots.json
+lib/seo.ts, rss.ts, schema.ts
+worker/
+sendEmail.js
+3. Routes
+- / Home — hero with masthead, mission (from Exec Letter), featured announcements,
+advertise CTA, top leaderboard ad slot
+- /about — history/mission excerpt from Exec Letter + link to full letter
+- /leadership-letter — full Exec Letter page + PDF link
+- /contact — contact cards for Editorial, Customer Service, Sales + Contact form
+- /advertise — summary from Media Kit, links to Media Kit PDF & Distribution Map PDF,
+Advertise Inquiry form
+- /submission-guidelines — copy/photo rules, deadlines from Media Kit
+- /announcements — listing with pagination
+- /announcements/[slug] — article layout with hero, date, byline, tags, in-article ad slot
+- /legal/terms, /legal/privacy, /legal/accessibility
+- /sitemap.xml, /rss.xml, /robots.txt
+4. Tailwind Config
+module.exports = {
+content: ["./src/**/*.{astro,html,md,mdx,js,ts,tsx}"],
+theme: {
+extend: {
+colors: {
+brand: { navy:"#1E3551", gray:"#6F7F8C", light:"#BFCBD1", paper:"#FDFEFD" }
+},
+fontFamily: {
+serif:['Merriweather','serif'],
+sans:['Inter','system-ui','sans-serif']
+}
+}
+}
+};
+5. MDX Front-matter Example
+title: "Community Parade Announced"
+dek: "Annual parade returns downtown this fall."
+date: 2025-08-08
+author: "Staff Report"
+
+
+--- PAGE 2 ---
+
+section: "Announcements"
+hero: "/images/announcements/parade.jpg"
+tags: ["community"]
+featured: true
+seoTitle: "Community Observer – Parade Announced"
+seoDescription: "Parade returns downtown with a new route."
+6. DOCX + Logo Integration
+When CO Media Kit.docx is uploaded:
+- Convert to /public/files/media-kit.pdf
+- /advertise: include description, copy/photo rules, deadlines, contacts
+- /submission-guidelines: same rules
+- /contact: update with contacts
+When CO Exec Letter.docx is uploaded:
+- Convert to /public/files/exec-letter.pdf
+- /leadership-letter: full letter
+- /about: excerpt with link
+- Home: mission summary
+When masthead logo is uploaded:
+- Save to /assets/images/logo.*
+- Use in header, footer, favicon, OG meta
+- Adjust Tailwind colors if needed
+7. Ads
+/src/data/adSlots.json example:
+{
+"top_leaderboard": { "enabled": true, "type": "image", "src": "/ads/top-placeholder.jpg",
+"href": "#" },
+"sidebar_rect": { "enabled": true, "type": "image", "src": "/ads/side-placeholder.jpg", "href":
+"#" },
+"in_article": { "enabled": false }
+}
+8. Forms
+Two forms: Contact, Advertise Inquiry
+- Shared: name, email, phone, org, message, formType
+- Advertise adds: budgetRange, objective, file placeholder
+- Anti-spam: honeypot + time-gate
+- POST to /__worker/sendEmail
+Worker (sendEmail.js) outline:
+
+
+--- PAGE 3 ---
+
+export default {
+async fetch(request, env) {
+if (request.method !== 'POST') return new Response('Method Not Allowed', { status:
+405 });
+const data = await request.json();
+if (data.honeypot) return new Response('OK', { status: 200 });
+const subject = `[Community Observer] ${data.formType || 'Contact'} from ${data.name}`;
+const body = `Name: ${data.name}\nEmail: ${data.email}\nOrg: ${data.organization ||
+'-'}\nPhone: ${data.phone || '-'}\nMessage:\n${data.message || '-'}`;
+const resp = await fetch('https://api.mailchannels.net/tx/v1/send', {
+method: 'POST',
+headers: { 'content-type': 'application/json' },
+body: JSON.stringify({
+personalizations: [{ to: [{ email: env.TO_EMAIL }] }],
+from: { email: env.FROM_EMAIL, name: "Community Observer" },
+subject,
+content: [{ type: "text/plain", value: body }]
+})
+});
+if (!resp.ok) return new Response('Email send failed', { status: 500 });
+return new Response('OK', { status: 200 });
+}
+};
+9. SEO & Accessibility
+- Seo component for meta/OG/Twitter
+- Sitemap, robots.txt, RSS at build
+- JSON-LD: Organization (home), NewsArticle (announcements), BreadcrumbList (articles)
+- WCAG AA contrast, skip link, landmarks, focus styles, alt text
+10. Performance
+- Astro Image for responsive AVIF/WEBP/JPEG
+- Lazy-load images, minimal JS, preload fonts
+- Lighthouse: ≥95 in all categories
+11. Acceptance
+- Cloudflare Pages deployment
+- Pages as listed
+- Forms send successfully
+- Docs + logo integrated
+- SEO metadata valid
+- Ad slots configurable
+
+
+--- PAGE 4 ---
+
+- Lighthouse meets goals
+
+
+--- PAGE 5 ---
+

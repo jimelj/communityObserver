@@ -1,0 +1,137 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="Leadership Letter - Community Observer"
+  description="A message from Jim Knoll, Senior Vice President, about Community Observer's mission to bring back local newspapers and serve the community."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Leadership Letter"
+    subtitle="A Message from Our Leadership"
+    description="Our commitment to bringing back local news and serving your community."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Letter Header -->
+      <div class="text-center mb-12">
+        <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+          <h2 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+            Dear Community Leader,
+          </h2>
+          <p class="text-brand-gray">
+            A personal message about our vision for local journalism
+          </p>
+        </div>
+      </div>
+
+      <!-- Letter Content -->
+      <div class="prose prose-lg mx-auto mb-16">
+        <div class="bg-brand-paper border-l-4 border-brand-navy pl-8 py-8 mb-8">
+          <p class="text-lg leading-relaxed text-brand-gray mb-6">
+            Our company started over 40 years ago as a community newspaper and gradually focused on managing print advertising in partnership with newspapers throughout New Jersey. As we know, newspapers across the country have been going out of print, such as our former partner, the Star Ledger. While we understand most people getting their news instantly on their mobile devices, our communities are losing something: the traditional local paper with local content. Major state and national news are easily accessible, but the events and activities in your community are not.
+          </p>
+          
+          <p class="text-lg leading-relaxed text-brand-gray mb-6">
+            Beginning this September, we will introduce Community Observer, a weekly community newspaper with stories about your community, many submitted by YOU! What's happening in local youth sports? What events are coming up in my community? What organizations have activities in my town? Are there events and activities for seniors near me? How can I let my neighbors know about my event or major accomplishment? What is my town council working on to improve my community?
+          </p>
+          
+          <p class="text-lg leading-relaxed text-brand-gray mb-6">
+            Community Observer will be a weekly, 8-page, print newspaper delivered to the residents of your community by newspaper carriers. Included in Community Observer will be valuable information on sale pricing and coupons from local businesses. Our paper will be a one-stop destination for news about what's happening in your community and opportunities to save on groceries, dining out, and other activities near you.
+          </p>
+          
+          <p class="text-lg leading-relaxed text-brand-gray mb-6">
+            Local newspapers are an American tradition, and we are excited to bring them back in your community! For more information on submission of photos and articles or delivery information, please visit thecommunityobserver.com or email us at info@mycommunityobserver.com.
+          </p>
+          
+          <p class="text-lg leading-relaxed text-brand-gray mb-8">
+            We look forward to being a valuable part of your community!
+          </p>
+          
+          <div class="border-t border-brand-light pt-6">
+            <p class="text-lg font-medium text-brand-navy mb-2">Sincerely,</p>
+            <p class="text-xl font-serif font-bold text-brand-navy">Jim Knoll</p>
+            <p class="text-brand-gray">Senior Vice President</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Section -->
+      <div class="bg-gradient-to-br from-brand-light/20 to-brand-paper rounded-2xl p-8 mb-12">
+        <div class="text-center">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+            Download the Full Letter
+          </h3>
+          <p class="text-brand-gray mb-6">
+            Get a PDF copy of the complete leadership letter to share or keep for your records.
+          </p>
+          <a 
+            href="/files/exec-letter.pdf" 
+            class="btn-primary inline-flex items-center"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+            Download PDF
+          </a>
+        </div>
+      </div>
+
+      <!-- Related Actions -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="card p-6 text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Learn More</h3>
+          <p class="text-brand-gray text-sm mb-4">
+            Discover more about our mission and history.
+          </p>
+          <a href="/about" class="text-brand-navy hover:text-brand-gray font-medium">
+            About Us →
+          </a>
+        </div>
+
+        <div class="card p-6 text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Submit Content</h3>
+          <p class="text-brand-gray text-sm mb-4">
+            Share your community stories with us.
+          </p>
+          <a href="/submission-guidelines" class="text-brand-navy hover:text-brand-gray font-medium">
+            Guidelines →
+          </a>
+        </div>
+
+        <div class="card p-6 text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Contact Us</h3>
+          <p class="text-brand-gray text-sm mb-4">
+            Get in touch with our team.
+          </p>
+          <a href="/contact" class="text-brand-navy hover:text-brand-gray font-medium">
+            Contact →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+

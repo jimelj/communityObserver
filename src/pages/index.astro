@@ -1,0 +1,224 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+import Card from '../components/Card.astro';
+import AdSlot from '../components/AdSlot.astro';
+---
+
+<Page
+  title="Community Observer - Your Local News Source"
+  description="Community Observer is your trusted local newspaper delivering community news, events, and stories that matter to your neighborhood. Published weekly with local content by and for the community."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Community Observer"
+    subtitle="Your Local News Source"
+    description="Bringing back the tradition of local newspapers with stories about your community, many submitted by YOU! Stay connected with local events, youth sports, community organizations, and everything happening in your neighborhood."
+    ctaText="Read Latest News"
+    ctaLink="/news"
+  />
+
+  <!-- Homepage Banner Ad -->
+  <div class="container mx-auto px-4">
+    <AdSlot slot="homepage_banner" className="my-8" />
+  </div>
+
+  <!-- Mission Section -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-8">
+          Bringing Local News Back to Your Community
+        </h2>
+        <div class="prose prose-lg mx-auto text-brand-gray">
+          <p class="text-xl leading-relaxed mb-6">
+            Our company started over 40 years ago as a community newspaper. While most people get their news instantly on mobile devices, our communities are losing something important: the traditional local paper with local content.
+          </p>
+          <p class="text-lg leading-relaxed mb-8">
+            Community Observer is a weekly, 8-page, print newspaper delivered to residents by newspaper carriers. We feature stories about your community, valuable information on local businesses, and opportunities to save on groceries, dining, and activities near you.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/about" class="btn-primary">
+              Learn More About Us
+            </a>
+            <a href="/files/exec-letter.pdf" class="btn-secondary">
+              Read Leadership Letter
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured News Section -->
+  <section class="py-16 bg-brand-paper">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-4">
+          Latest Community News
+        </h2>
+        <p class="text-xl text-brand-gray">
+          Stay updated with the latest happenings in your neighborhood
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+        <!-- Featured Article 1 -->
+        <Card
+          title="Community Parade Returns This Fall"
+          description="The annual community parade is back with a new route through downtown, featuring local organizations, schools, and businesses."
+          image="/images/placeholder-parade.jpg"
+          href="/articles/summer-festival-2025"
+          date="2025-08-08"
+          author="Staff Report"
+          tags={["community", "events"]}
+          featured={true}
+        />
+
+        <!-- Featured Article 2 -->
+        <Card
+          title="Local Youth Sports Season Kicks Off"
+          description="Fall sports season begins with new teams and exciting matchups. Registration is still open for several leagues."
+          image="/images/placeholder-sports.jpg"
+          href="/articles/youth-soccer-championship"
+          date="2025-08-07"
+          author="Sports Desk"
+          tags={["sports", "youth"]}
+        />
+
+        <!-- Featured Article 3 -->
+        <Card
+          title="Town Council Approves New Community Center"
+          description="After months of planning, the new community center project gets the green light with construction starting next spring."
+          image="/images/placeholder-council.jpg"
+          href="/articles/local-business-expansion"
+          date="2025-08-06"
+          author="City Reporter"
+          tags={["government", "community"]}
+        />
+      </div>
+
+      <div class="text-center">
+        <a href="/news" class="btn-primary">
+          View All News
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community Engagement Section -->
+  <section class="py-16 bg-gradient-to-br from-brand-navy to-brand-gray text-white">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">
+            Your Stories Matter
+          </h2>
+          <p class="text-xl text-brand-light mb-6">
+            Community Observer thrives on stories from residents like you. Share your events, achievements, sports scores, and community happenings.
+          </p>
+          <ul class="space-y-3 text-brand-light mb-8">
+            <li class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Upcoming community events
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Local sports scores and highlights
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Organization meetings and activities
+            </li>
+            <li class="flex items-center">
+              <svg class="w-5 h-5 mr-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Personal milestones and achievements
+            </li>
+          </ul>
+          <a href="/submission-guidelines" class="bg-white text-brand-navy px-8 py-4 rounded-lg font-semibold hover:bg-brand-light transition-colors inline-block">
+            Submit Your Story
+          </a>
+        </div>
+        
+        <div class="text-center">
+          <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8">
+            <h3 class="text-2xl font-serif font-bold mb-4">Get Involved</h3>
+            <p class="text-brand-light mb-6">
+              Join our community of contributors and help keep local news alive.
+            </p>
+            <div class="space-y-4">
+              <a href="/contact" class="block w-full bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-lg transition-colors">
+                Contact Editorial Team
+              </a>
+              <a href="/advertise" class="block w-full border-2 border-white/50 hover:bg-white hover:text-brand-navy text-white px-6 py-3 rounded-lg transition-colors">
+                Advertise With Us
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Local Business Support Section -->
+  <section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-4">
+          Supporting Local Business
+        </h2>
+        <p class="text-xl text-brand-gray max-w-3xl mx-auto">
+          Community Observer includes valuable information on sale pricing and coupons from local businesses, making it your one-stop destination for community news and savings.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M7 7h10M7 11h10M7 15h10"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-2">Weekly Print Edition</h3>
+          <p class="text-brand-gray">Delivered directly to your door every week</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-2">Local Deals & Coupons</h3>
+          <p class="text-brand-gray">Save money at your favorite local businesses</p>
+        </div>
+
+        <div class="text-center">
+          <div class="bg-brand-light/20 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-2">Community Focus</h3>
+          <p class="text-brand-gray">Hyperlocal news that matters to your neighborhood</p>
+        </div>
+      </div>
+
+      <div class="text-center mt-12">
+        <a href="/advertise" class="btn-primary">
+          Partner With Us
+        </a>
+      </div>
+    </div>
+  </section>
+</Page>
+

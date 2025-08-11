@@ -1,0 +1,61 @@
+---
+import Article from '../../layouts/Article.astro';
+import { readdir, readFile } from 'fs/promises';
+import { join } from 'path';
+
+export async function getStaticPaths() {
+  const articlesDir = join(process.cwd(), 'src/data/articles');
+  const files = await readdir(articlesDir);
+  const jsonFiles = files.filter(file => file.endsWith('.json'));
+  
+  const paths = await Promise.all(
+    jsonFiles.map(async (file) => {
+      const filePath = join(articlesDir, file);
+      const raw = await readFile(filePath, 'utf-8');
+      const article = JSON.parse(raw);
+      
+      return {
+        params: { slug: article.id },
+        props: { article }
+      };
+    })
+  );
+  
+  return paths;
+}
+
+const { article } = Astro.props;
+
+function renderContent(contentArray) {
+  return contentArray.map(item => {
+    switch (item.type) {
+      case 'paragraph':
+        const pClass = item.class ? ` class="${item.class}"` : '';
+        return `<p${pClass}>${item.text}</p>`;
+      
+      case 'heading':
+        return `<h${item.level}>${item.text}</h${item.level}>`;
+      
+      case 'list':
+        const listItems = item.items.map(listItem => `<li>${listItem}</li>`).join('');
+        return `<ul>${listItems}</ul>`;
+      
+      default:
+        return '';
+    }
+  }).join('\n');
+}
+---
+
+<Article
+  title={article.title}
+  description={article.excerpt}
+  author={article.author}
+  date={article.date}
+  category={article.category}
+  tags={article.tags}
+  image={article.image}
+>
+  <div class="prose prose-lg max-w-none" set:html={renderContent(article.content)} />
+</Article>
+

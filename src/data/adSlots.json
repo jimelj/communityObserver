@@ -1,0 +1,39 @@
+{
+  "top_leaderboard": {
+    "enabled": true,
+    "type": "image",
+    "src": "/ads/banner-placeholder.jpg",
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 728,
+    "height": 90
+  },
+  "homepage_banner": {
+    "enabled": true,
+    "type": "image",
+    "src": "/ads/homepage-banner.jpg",
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 728,
+    "height": 90
+  },
+  "sidebar_rect": {
+    "enabled": true,
+    "type": "image", 
+    "src": "/ads/side-placeholder.jpg",
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 300,
+    "height": 250
+  },
+  "in_article": {
+    "enabled": false,
+    "type": "image",
+    "src": "/ads/article-placeholder.jpg", 
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 300,
+    "height": 250
+  }
+}
+

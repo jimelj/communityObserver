@@ -1,0 +1,193 @@
+{
+  "project": "Community Observer",
+  "tech_stack": {
+    "framework": "Astro",
+    "styling": "Tailwind CSS",
+    "hosting": "Cloudflare Pages",
+    "forms": "Cloudflare Worker + MailChannels",
+    "analytics": "Cloudflare Web Analytics",
+    "cms": "None (MD/MDX now, CMS-ready later)"
+  },
+  "important_uploads": [
+    "CO Media Kit.docx",
+    "CO Exec Letter.docx",
+    "Masthead logo image"
+  ],
+  "brand": {
+    "colors": {
+      "navy": "#1E3551",
+      "gray": "#6F7F8C",
+      "light": "#BFCBD1",
+      "paper": "#FDFEFD"
+    },
+    "fonts": {
+      "serif": "Merriweather",
+      "sans": "Inter"
+    }
+  },
+  "structure": {
+    "public": [
+      "favicon.ico",
+      "robots.txt",
+      "files/media-kit.pdf",
+      "files/exec-letter.pdf",
+      "files/distribution-map.pdf"
+    ],
+    "src": {
+      "content": [
+        "announcements/",
+        "pages/"
+      ],
+      "assets": [
+        "images/"
+      ],
+      "components": [
+        "Header",
+        "Footer",
+        "Nav",
+        "Hero",
+        "Card",
+        "Seo",
+        "AdSlot",
+        "Forms",
+        "ContactCard"
+      ],
+      "layouts": [
+        "Page",
+        "Article",
+        "Listing"
+      ],
+      "data": [
+        "adSlots.json"
+      ],
+      "lib": [
+        "seo.ts",
+        "rss.ts",
+        "schema.ts"
+      ]
+    },
+    "worker": [
+      "sendEmail.js"
+    ]
+  },
+  "routes": [
+    "/",
+    "/about",
+    "/leadership-letter",
+    "/contact",
+    "/advertise",
+    "/submission-guidelines",
+    "/announcements",
+    "/announcements/[slug]",
+    "/legal/terms",
+    "/legal/privacy",
+    "/legal/accessibility",
+    "/sitemap.xml",
+    "/rss.xml",
+    "/robots.txt"
+  ],
+  "docx_integration": {
+    "media_kit": {
+      "convert_to": "/public/files/media-kit.pdf",
+      "update_pages": [
+        "/advertise",
+        "/submission-guidelines",
+        "/contact"
+      ]
+    },
+    "exec_letter": {
+      "convert_to": "/public/files/exec-letter.pdf",
+      "update_pages": [
+        "/leadership-letter",
+        "/about",
+        "/"
+      ]
+    },
+    "masthead_logo": {
+      "path": "/assets/images/logo.*",
+      "use_in": [
+        "header",
+        "footer",
+        "favicon",
+        "OG image"
+      ]
+    }
+  },
+  "ads": {
+    "config_file": "/src/data/adSlots.json",
+    "example": {
+      "top_leaderboard": {
+        "enabled": true,
+        "type": "image",
+        "src": "/ads/top-placeholder.jpg",
+        "href": "#"
+      },
+      "sidebar_rect": {
+        "enabled": true,
+        "type": "image",
+        "src": "/ads/side-placeholder.jpg",
+        "href": "#"
+      },
+      "in_article": {
+        "enabled": false
+      }
+    }
+  },
+  "forms": {
+    "types": [
+      "Contact",
+      "Advertise Inquiry"
+    ],
+    "shared_fields": [
+      "name",
+      "email",
+      "phone",
+      "organization",
+      "message",
+      "formType"
+    ],
+    "advertise_extra": [
+      "budgetRange",
+      "objective",
+      "file_placeholder"
+    ],
+    "anti_spam": [
+      "honeypot",
+      "time_gate"
+    ],
+    "endpoint": "/__worker/sendEmail"
+  },
+  "seo_accessibility": {
+    "seo_component": true,
+    "generate": [
+      "sitemap.xml",
+      "robots.txt",
+      "rss.xml"
+    ],
+    "json_ld": [
+      "Organization",
+      "NewsArticle",
+      "BreadcrumbList"
+    ],
+    "wcag_aa": true,
+    "skip_link": true,
+    "landmarks": true,
+    "alt_text_required": true
+  },
+  "performance": {
+    "astro_image": true,
+    "lazy_load": true,
+    "minimal_js": true,
+    "preload_fonts": true,
+    "lighthouse_goal": 95
+  },
+  "acceptance": [
+    "Deployed to Cloudflare Pages",
+    "Pages live as listed",
+    "Forms working",
+    "Docs+logo integrated",
+    "SEO metadata valid",
+    "Ad slots configurable",
+    "Lighthouse meets goals"
+  ]
+}

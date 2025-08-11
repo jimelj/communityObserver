@@ -1,0 +1,115 @@
+---
+import adSlots from '../data/adSlots.json';
+
+export interface Props {
+  slot: 'top_leaderboard' | 'homepage_banner' | 'sidebar_rect' | 'in_article';
+  className?: string;
+}
+
+const { slot, className = '' } = Astro.props;
+const adConfig = adSlots[slot];
+
+if (!adConfig || !adConfig.enabled) {
+  return null;
+}
+---
+
+{adConfig.enabled && (
+  <div 
+    class={`ad-slot ${className}`}
+    data-ad-slot={slot}
+    role="complementary"
+    aria-label="Advertisement"
+  >
+    {adConfig.type === 'image' && (
+      <a 
+        href={adConfig.href}
+        class="block transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-brand-navy focus:ring-offset-2 rounded"
+        target={adConfig.href.startsWith('http') ? '_blank' : '_self'}
+        rel={adConfig.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+      >
+        <img 
+          src={adConfig.src}
+          alt={adConfig.alt || 'Advertisement'}
+          width={adConfig.width}
+          height={adConfig.height}
+          class="w-full h-auto rounded border border-brand-light/50"
+          loading="lazy"
+        />
+      </a>
+    )}
+    
+    {adConfig.type === 'html' && (
+      <div 
+        class="ad-content"
+        set:html={adConfig.content}
+      />
+    )}
+  </div>
+)}
+
+<style>
+  .ad-slot {
+    @apply flex flex-col items-center justify-center;
+  }
+  
+  .ad-slot[data-ad-slot="top_leaderboard"] {
+    @apply w-full mx-auto my-6;
+    max-width: 728px;
+  }
+  
+  .ad-slot[data-ad-slot="top_leaderboard"] img {
+    width: 728px !important;
+    height: 90px !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  
+  .ad-slot[data-ad-slot="homepage_banner"] {
+    @apply w-full mx-auto;
+    max-width: 728px;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .ad-slot[data-ad-slot="homepage_banner"] img {
+    width: 728px !important;
+    height: 90px !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  
+  .ad-slot[data-ad-slot="sidebar_rect"] {
+    @apply w-full max-w-sm;
+  }
+  
+  .ad-slot[data-ad-slot="sidebar_rect"] img {
+    width: 300px !important;
+    height: 250px !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  
+  .ad-slot[data-ad-slot="in_article"] {
+    @apply w-full max-w-sm mx-auto my-8 float-right ml-6 mb-4;
+  }
+  
+  @media (max-width: 768px) {
+    .ad-slot[data-ad-slot="in_article"] {
+      @apply float-none ml-0 max-w-full;
+    }
+    
+    .ad-slot[data-ad-slot="top_leaderboard"],
+    .ad-slot[data-ad-slot="homepage_banner"] {
+      @apply max-w-full;
+    }
+    
+    .ad-slot[data-ad-slot="top_leaderboard"] img,
+    .ad-slot[data-ad-slot="homepage_banner"] img {
+      width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 728/90;
+    }
+  }
+</style>
+

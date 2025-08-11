@@ -1,0 +1,294 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+import AdSlot from '../components/AdSlot.astro';
+---
+
+<Page
+  title="Advertise with Community Observer - Reach Your Local Community"
+  description="Advertise with Community Observer and reach your local community through our weekly print newspaper. Download our media kit and contact our sales team today."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Advertise with Us"
+    subtitle="Reach Your Local Community"
+    description="Connect with your neighbors through Community Observer's weekly print newspaper. Effective local advertising that gets results."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    
+    <!-- Why Advertise Section -->
+    <div class="max-w-4xl mx-auto text-center mb-16">
+      <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-6">
+        Why Advertise with Community Observer?
+      </h2>
+      <p class="text-xl text-brand-gray mb-8">
+        Local newspapers are an American tradition, and we're bringing them back to your community! 
+        Reach engaged local readers who value community news and support local businesses.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+        <div class="card p-6 text-center">
+          <div class="bg-brand-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Hyperlocal Reach</h3>
+          <p class="text-brand-gray text-sm">
+            Target your exact community with precision. No wasted impressions on people outside your service area.
+          </p>
+        </div>
+
+        <div class="card p-6 text-center">
+          <div class="bg-brand-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Weekly Delivery</h3>
+          <p class="text-brand-gray text-sm">
+            Your message delivered directly to homes every week by newspaper carriers. Consistent, reliable exposure.
+          </p>
+        </div>
+
+        <div class="card p-6 text-center">
+          <div class="bg-brand-navy/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </div>
+          <h3 class="text-lg font-serif font-bold text-brand-navy mb-3">Proven Results</h3>
+          <p class="text-brand-gray text-sm">
+            Print advertising drives action. Readers trust local newspapers and support the businesses that advertise with us.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advertising Options -->
+    <div class="mb-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-4">
+          Advertising Options
+        </h2>
+        <p class="text-xl text-brand-gray">
+          Choose the perfect size and placement for your message
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        
+        <!-- Display Ads -->
+        <div class="card p-8">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Display Advertising</h3>
+          
+          <div class="space-y-6">
+            <div class="border-l-4 border-brand-navy pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Full Page</h4>
+              <p class="text-brand-gray text-sm mb-2">10" x 13" - Maximum impact</p>
+              <p class="text-brand-gray text-sm">Perfect for major announcements, grand openings, or comprehensive service listings.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Half Page</h4>
+              <p class="text-brand-gray text-sm mb-2">10" x 6.5" or 5" x 13"</p>
+              <p class="text-brand-gray text-sm">Great balance of visibility and value for restaurants, retail stores, and service providers.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Quarter Page</h4>
+              <p class="text-brand-gray text-sm mb-2">5" x 6.5"</p>
+              <p class="text-brand-gray text-sm">Ideal for professional services, small businesses, and event promotions.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Business Card</h4>
+              <p class="text-brand-gray text-sm mb-2">3.5" x 2"</p>
+              <p class="text-brand-gray text-sm">Cost-effective option for contact information and basic service listings.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Special Features -->
+        <div class="card p-8">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Special Features</h3>
+          
+          <div class="space-y-6">
+            <div class="border-l-4 border-brand-navy pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Front Page Banner</h4>
+              <p class="text-brand-gray text-sm mb-2">Premium placement</p>
+              <p class="text-brand-gray text-sm">Maximum visibility on the front page of every issue. Limited availability.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Back Page</h4>
+              <p class="text-brand-gray text-sm mb-2">High-impact placement</p>
+              <p class="text-brand-gray text-sm">The last thing readers see. Perfect for memorable messaging and branding.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Inserts & Coupons</h4>
+              <p class="text-brand-gray text-sm mb-2">Direct response marketing</p>
+              <p class="text-brand-gray text-sm">Include flyers, menus, or coupon sheets with every newspaper delivery.</p>
+            </div>
+            
+            <div class="border-l-4 border-brand-light pl-6">
+              <h4 class="font-bold text-brand-navy mb-2">Sponsored Content</h4>
+              <p class="text-brand-gray text-sm mb-2">Editorial-style advertising</p>
+              <p class="text-brand-gray text-sm">Tell your story through sponsored articles and business profiles.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sample Ad Placements -->
+    <div class="mb-16">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-4">
+          Sample Ad Placements
+        </h2>
+        <p class="text-xl text-brand-gray">
+          See how your ads will look in our newspaper layout
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="text-center">
+          <h4 class="font-serif font-bold text-brand-navy mb-4">Banner Advertisement</h4>
+          <AdSlot size="banner" position="top" />
+        </div>
+        
+        <div class="text-center">
+          <h4 class="font-serif font-bold text-brand-navy mb-4">Rectangle Advertisement</h4>
+          <AdSlot size="rectangle" position="sidebar" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Pricing & Contact -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      
+      <!-- Media Kit Download -->
+      <div class="card p-8">
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Get Our Media Kit</h3>
+        <p class="text-brand-gray mb-6">
+          Download our complete media kit with detailed specifications, pricing information, 
+          and circulation data to help you plan your advertising campaign.
+        </p>
+        
+        <div class="space-y-4 mb-8">
+          <div class="flex items-center text-brand-gray">
+            <svg class="w-5 h-5 mr-3 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Ad sizes and specifications
+          </div>
+          <div class="flex items-center text-brand-gray">
+            <svg class="w-5 h-5 mr-3 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Current pricing and packages
+          </div>
+          <div class="flex items-center text-brand-gray">
+            <svg class="w-5 h-5 mr-3 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Circulation and demographics
+          </div>
+          <div class="flex items-center text-brand-gray">
+            <svg class="w-5 h-5 mr-3 text-brand-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Deadlines and submission guidelines
+          </div>
+        </div>
+        
+        <a 
+          href="/files/media-kit.pdf" 
+          class="btn-primary inline-flex items-center"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download Media Kit
+        </a>
+      </div>
+
+      <!-- Contact Sales Team -->
+      <div class="card p-8">
+        <h3 class="text-2xl font-serif font-bold text-brand-navy mb-6">Contact Our Sales Team</h3>
+        <p class="text-brand-gray mb-6">
+          Ready to start advertising? Our experienced sales team will help you create 
+          an effective campaign that reaches your target audience and fits your budget.
+        </p>
+        
+        <div class="space-y-6 mb-8">
+          <div class="border-l-4 border-brand-navy pl-4">
+            <p class="font-bold text-brand-navy">John Polizano</p>
+            <p class="text-brand-gray text-sm mb-2">Senior Sales Representative</p>
+            <p class="text-sm">
+              <a href="mailto:sales@thecommunityobserver.com" class="text-brand-navy hover:underline">
+                sales@thecommunityobserver.com
+              </a>
+            </p>
+            <p class="text-sm">
+              <a href="tel:+16315907835" class="text-brand-navy hover:underline">
+                (631) 590-7835
+              </a>
+            </p>
+          </div>
+          
+          <div class="border-l-4 border-brand-light pl-4">
+            <p class="font-bold text-brand-navy">Mike Colella</p>
+            <p class="text-brand-gray text-sm mb-2">Sales Representative</p>
+            <p class="text-sm">
+              <a href="mailto:sales@thecommunityobserver.com" class="text-brand-navy hover:underline">
+                sales@thecommunityobserver.com
+              </a>
+            </p>
+            <p class="text-sm">
+              <a href="tel:+19736503482" class="text-brand-navy hover:underline">
+                (973) 650-3482
+              </a>
+            </p>
+          </div>
+        </div>
+        
+        <a href="/contact" class="btn-secondary inline-flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Contact Form
+        </a>
+      </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="text-center mt-16">
+      <div class="bg-gradient-to-br from-brand-navy to-brand-gray text-white rounded-2xl p-12">
+        <h2 class="text-3xl md:text-4xl font-serif font-bold mb-4">
+          Ready to Reach Your Community?
+        </h2>
+        <p class="text-xl text-brand-light mb-8 max-w-2xl mx-auto">
+          Join the local businesses that trust Community Observer to connect them with their neighbors. 
+          Let's create an advertising campaign that gets results.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <a href="/files/media-kit.pdf" class="btn-secondary bg-white text-brand-navy hover:bg-brand-light">
+            Download Media Kit
+          </a>
+          <a href="/contact" class="btn-primary bg-brand-light text-brand-navy hover:bg-white">
+            Get Started Today
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+
