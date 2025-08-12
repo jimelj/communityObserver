@@ -1,5 +1,4 @@
 ---
-import { Image } from 'astro:assets';
 
 const currentPath = Astro.url.pathname;
 
@@ -51,13 +50,11 @@ const navItems = [
       <!-- Main Logo/Masthead -->
       <div class="mb-1">
         <a href="/" class="inline-block">
-          <Image 
-            src="/images/COLogo.jpg" 
-            alt="Community Observer" 
-            width={600}
-            height={200}
-            class="mx-auto max-w-full h-auto"
-            style="max-height: 120px;"
+          <img
+            src="/images/COLogo.jpg"
+            alt="Community Observer"
+            class="mx-auto block object-contain"
+            style="max-height: 200px; width: auto;"
           />
         </a>
       </div>
@@ -100,12 +97,14 @@ const navItems = [
     const dateElement = document.getElementById('current-date');
     if (dateElement) {
       const today = new Date();
+      /** @type {any} */
       const options = { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
       };
+      // @ts-ignore - runtime browser API typings not available in this Astro client script context
       dateElement.textContent = today.toLocaleDateString('en-US', options);
     }
   });
