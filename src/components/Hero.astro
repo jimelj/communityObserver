@@ -7,6 +7,8 @@ export interface Props {
   ctaText?: string;
   ctaLink?: string;
   variant?: 'default' | 'minimal' | 'image';
+  sideImageSrc?: string;
+  sideImageAlt?: string;
 }
 
 const {
@@ -16,7 +18,9 @@ const {
   backgroundImage,
   ctaText,
   ctaLink,
-  variant = 'default'
+  variant = 'default',
+  sideImageSrc,
+  sideImageAlt
 } = Astro.props;
 ---
 
@@ -39,7 +43,65 @@ const {
   )}
   
   <div class="container mx-auto px-4 relative z-10">
-    <div class={`max-w-4xl ${variant === 'minimal' ? 'text-center mx-auto' : ''}`}>
+    {sideImageSrc ? (
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div>
+          {subtitle && (
+            <p class={`text-sm font-medium uppercase tracking-wider mb-4 ${
+              variant === 'image' ? 'text-brand-light' : 'text-brand-gray'
+            }`}>
+              {subtitle}
+            </p>
+          )}
+          
+          <h1 class={`font-serif font-bold leading-tight mb-6 ${
+            variant === 'minimal' 
+              ? 'text-3xl md:text-4xl lg:text-5xl' 
+              : 'text-4xl md:text-5xl lg:text-6xl'
+          } ${
+            variant === 'image' ? 'text-white' : 'text-brand-navy'
+          }`}>
+            {title}
+          </h1>
+          
+          {description && (
+            <p class={`text-lg md:text-xl leading-relaxed mb-8 max-w-3xl ${
+              variant === 'image' ? 'text-brand-light' : 'text-brand-gray'
+            }`}>
+              {description}
+            </p>
+          )}
+          
+          {ctaText && ctaLink && (
+            <div class="flex flex-col sm:flex-row gap-4">
+              <a 
+                href={ctaLink}
+                class={`inline-flex items-center justify-center px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  variant === 'image' 
+                    ? 'bg-white text-brand-navy hover:bg-brand-light focus:ring-white' 
+                    : 'bg-brand-navy text-white hover:bg-opacity-90 focus:ring-brand-navy'
+                }`}
+              >
+                {ctaText}
+                <svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                </svg>
+              </a>
+            </div>
+          )}
+        </div>
+
+        <div class="relative w-full h-64 sm:h-80 lg:h-[28rem]">
+          <img 
+            src={sideImageSrc} 
+            alt={sideImageAlt || ''} 
+            class="w-full h-full object-cover rounded-xl shadow-xl"
+            loading="eager"
+          />
+        </div>
+      </div>
+    ) : (
+      <div class={`max-w-4xl ${variant === 'minimal' ? 'text-center mx-auto' : ''}`}>
       
       {subtitle && (
         <p class={`text-sm font-medium uppercase tracking-wider mb-4 ${
@@ -84,7 +146,8 @@ const {
           </a>
         </div>
       )}
-    </div>
+      </div>
+    )}
   </div>
   
   <!-- Decorative elements for modern design -->
