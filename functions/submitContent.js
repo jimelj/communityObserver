@@ -1,5 +1,16 @@
 // Using native fetch instead of Resend SDK for Cloudflare Functions compatibility
 
+export async function onRequest(context) {
+  const { request } = context;
+  
+  // Only handle POST requests
+  if (request.method !== 'POST') {
+    return new Response('Method not allowed', { status: 405 });
+  }
+  
+  return onRequestPost(context);
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
   
