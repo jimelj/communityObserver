@@ -6,10 +6,11 @@
 
 #### **Content Submission System**
 - **Dedicated submission page**: Created comprehensive content submission form at `/submit-content`
-- **File upload support**: Multiple file attachments (photos, documents) up to 10MB each
+- **File upload support**: Multiple file attachments (photos, documents) up to 5MB each
 - **Email-based workflow**: All submissions sent via email with file attachments
 - **Professional confirmation**: Automatic confirmation emails to submitters
 - **Guideline integration**: Built-in validation and guideline reminders
+- **Form reset functionality**: Files automatically cleared when form is reset after successful submission
 
 #### **Enhanced User Experience**
 - **Visual file management**: Shows selected files with remove options
@@ -42,18 +43,22 @@
 - **Better maintainability**: Reduced manual maintenance of homepage content
 
 #### **Form Processing**
-- **Cloudflare Function**: New `submitContent.js` for handling content submissions
-- **File handling**: Secure file processing with automatic cleanup
+- **Cloudflare Function**: Enhanced `sendEmail.js` for handling content submissions
+- **File handling**: Secure file processing with chunked base64 conversion
 - **Rate limiting**: 5-minute cooldown between submissions
 - **Spam protection**: Honeypot field and validation
 - **Email delivery**: Professional HTML emails with attachments
+- **Robust file processing**: Fixed Buffer issues and stack overflow problems
 
 ### 🗂️ File Structure Changes
 
 #### **Added Files**
 - `src/pages/leadership-letter-old.astro` (archived original version)
 - `src/pages/submit-content.astro` (comprehensive content submission form)
-- `functions/submitContent.js` (Cloudflare Function for form processing)
+
+#### **Updated Files**
+- `functions/sendEmail.js` - Enhanced to handle content submissions with file attachments
+- `public/js/forms.js` - Updated validation to support content submission forms
 
 #### **Updated Files**
 - `src/pages/leadership-letter.astro` - Complete content refresh with new messaging

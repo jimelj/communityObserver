@@ -348,6 +348,21 @@ import Hero from '../components/Hero.astro';
     fileInput.files = dt.files;
     fileInput.dispatchEvent(new Event('change'));
   };
+  
+  // Clear file input function
+  function clearFileInput() {
+    fileInput.value = '';
+    fileList.innerHTML = '';
+  }
+  
+  // Listen for form reset events to clear files
+  const form = document.getElementById('contentForm');
+  if (form) {
+    form.addEventListener('reset', () => {
+      clearFileInput();
+      updateWordCount();
+    });
+  }
 </script>
 
 <script src="/js/forms.js?v=2" is:inline></script>
