@@ -19,14 +19,14 @@ export async function onRequestPost(context) {
     
     // Rate limiting check (simple implementation)
     const clientIP = request.headers.get('CF-Connecting-IP') || 'unknown';
-    const rateLimitKey = `rate_limit_${clientIP}`;
+    const rateLimitKey = `rate_limit_${formType}_${clientIP}`;
     
     // Check if we have a rate limit store (KV namespace)
     if (env.RATE_LIMIT) {
       const lastSubmission = await env.RATE_LIMIT.get(rateLimitKey);
       const now = Date.now();
       
-      if (lastSubmission && (now - parseInt(lastSubmission)) < 60000) { // 1 minute cooldown
+      if (lastSubmission && (now - parseInt(lastSubmission)) < 30000) { // 30 second cooldown
         return new Response('Rate limit exceeded. Please wait before submitting again.', { 
           status: 429 
         });
