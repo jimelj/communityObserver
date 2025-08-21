@@ -348,51 +348,6 @@ import Hero from '../components/Hero.astro';
     fileInput.files = dt.files;
     fileInput.dispatchEvent(new Event('change'));
   };
-  
-  // Form submission
-  const form = document.getElementById('contentForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const formMessage = document.getElementById('formMessage');
-  
-  if (form && submitBtn && formMessage) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      // Disable submit button
-      (submitBtn as HTMLButtonElement).disabled = true;
-      (submitBtn as HTMLButtonElement).textContent = 'Submitting...';
-      
-      // Get form data
-      const formData = new FormData(form as HTMLFormElement);
-      
-      try {
-        const response = await fetch('/sendEmail', {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok) {
-          // Success
-          formMessage.className = 'mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg';
-          formMessage.textContent = 'Thank you! Your content has been submitted successfully. We will review it and contact you if needed.';
-          (form as HTMLFormElement).reset();
-          updateWordCount();
-        } else {
-          // Error
-          formMessage.className = 'mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
-          formMessage.textContent = result.error || 'There was an error submitting your content. Please try again.';
-        }
-      } catch (error) {
-        formMessage.className = 'mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
-        formMessage.textContent = 'There was an error submitting your content. Please try again.';
-      }
-      
-      // Re-enable submit button
-      (submitBtn as HTMLButtonElement).disabled = false;
-      (submitBtn as HTMLButtonElement).textContent = 'Submit Content';
-      formMessage.classList.remove('hidden');
-    });
-  }
 </script>
+
+<script src="/js/forms.js" is:inline></script>
