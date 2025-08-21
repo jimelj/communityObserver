@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.2.0] - 2025-08-21
+
+### 📝 Content Updates
+
+#### **Leadership Letter Refresh**
+- **Updated content**: Replaced leadership letter text with new version from PDF
+- **New title**: Added "A New Way to Connect Your Community" as main heading
+- **Streamlined messaging**: More concise and focused content
+- **Updated contact info**: Changed email to info@thecommunityobserver.com
+- **Archived original**: Preserved old version as leadership-letter-old.astro
+- **PDF update**: Now links to exec-letter-v2.pdf
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `src/pages/leadership-letter-old.astro` (archived original version)
+
+#### **Updated Files**
+- `src/pages/leadership-letter.astro` - Complete content refresh with new messaging
+
+---
+
 ## [1.1.0] - 2025-08-21
 
 ### 🚀 Major Features
