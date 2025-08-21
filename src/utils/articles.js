@@ -17,6 +17,11 @@ export async function getAllArticles() {
         // Add href for navigation
         article.href = `/articles/${article.id}`;
         
+        // Use excerpt as description if not provided
+        if (!article.description && article.excerpt) {
+          article.description = article.excerpt;
+        }
+        
         return article;
       })
     );

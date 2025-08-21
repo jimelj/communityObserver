@@ -1,12 +1,12 @@
 {
   "id": "local-business-expansion",
   "title": "Local Restaurant Expands to Second Location",
-  "excerpt": "Popular family restaurant announces plans to open a second location, bringing more jobs to the community.",
+  "description": "Popular family restaurant announces plans to open a second location, bringing more jobs to the community.",
   "date": "2025-08-03",
   "author": "Business Reporter",
   "category": "business",
   "tags": ["business", "economy"],
-  "image": "/images/placeholder-council.jpg",
+  "image": "/images/placeholder-restaurant.jpg",
   "featured": false,
   "content": [
     {

@@ -1,61 +1,63 @@
 ---
 import Article from '../../layouts/Article.astro';
-import { readdir, readFile } from 'fs/promises';
-import { join } from 'path';
+import { getAllArticles } from '../../utils/articles.js';
 
+// Generate static paths for all articles
 export async function getStaticPaths() {
-  const articlesDir = join(process.cwd(), 'src/data/articles');
-  const files = await readdir(articlesDir);
-  const jsonFiles = files.filter(file => file.endsWith('.json'));
+  const allArticles = await getAllArticles();
   
-  const paths = await Promise.all(
-    jsonFiles.map(async (file) => {
-      const filePath = join(articlesDir, file);
-      const raw = await readFile(filePath, 'utf-8');
-      const article = JSON.parse(raw);
-      
-      return {
-        params: { slug: article.id },
-        props: { article }
-      };
-    })
-  );
-  
-  return paths;
+  return allArticles.map(article => ({
+    params: { slug: article.id },
+    props: { article }
+  }));
 }
 
+// Get the article from props
 const { article } = Astro.props;
 
-function renderContent(contentArray) {
-  return contentArray.map(item => {
-    switch (item.type) {
-      case 'paragraph':
-        const pClass = item.class ? ` class="${item.class}"` : '';
-        return `<p${pClass}>${item.text}</p>`;
-      
-      case 'heading':
-        return `<h${item.level}>${item.text}</h${item.level}>`;
-      
-      case 'list':
-        const listItems = item.items.map(listItem => `<li>${listItem}</li>`).join('');
-        return `<ul>${listItems}</ul>`;
-      
-      default:
-        return '';
-    }
-  }).join('\n');
-}
+// Extract content from JSON
+const { title, description, date, author, section, tags, image, content } = article;
 ---
 
 <Article
-  title={article.title}
-  description={article.excerpt}
-  author={article.author}
-  date={article.date}
-  category={article.category}
-  tags={article.tags}
-  image={article.image}
+  title={title}
+  description={description}
+  date={date}
+  author={author}
+  section={section}
+  tags={tags}
+  image={image}
 >
-  <div class="prose prose-lg max-w-none" set:html={renderContent(article.content)} />
+  <div class="prose prose-lg max-w-none">
+    {content.map((block, index) => {
+      switch (block.type) {
+        case 'paragraph':
+          return (
+            <p class={block.class || ''} set:html={block.text}>
+            </p>
+          );
+        
+        case 'heading':
+          const HeadingTag = `h${block.level}`;
+          return (
+            <HeadingTag>
+              {block.text}
+            </HeadingTag>
+          );
+        
+        case 'list':
+          return (
+            <ul>
+              {block.items.map((item) => (
+                <li set:html={item}></li>
+              ))}
+            </ul>
+          );
+        
+        default:
+          return null;
+      }
+    })}
+  </div>
 </Article>
 

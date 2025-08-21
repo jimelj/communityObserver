@@ -20,9 +20,9 @@ import AdSlot from '../components/AdSlot.astro';
     
     <!-- Why Advertise Section -->
     <div class="max-w-4xl mx-auto text-center mb-16">
-      <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-6">
-        Why Advertise with Community Observer?
-      </h2>
+              <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-navy mb-6">
+          Why Advertise with <em>Community Observer</em>?
+        </h2>
       <p class="text-xl text-brand-gray mb-8">
         Local newspapers are an American tradition, and we're bringing them back to your community! 
         Reach engaged local readers who value community news and support local businesses.
@@ -159,12 +159,12 @@ import AdSlot from '../components/AdSlot.astro';
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div class="text-center">
           <h4 class="font-serif font-bold text-brand-navy mb-4">Banner Advertisement</h4>
-          <AdSlot size="banner" position="top" />
+          <AdSlot slot="homepage_banner" />
         </div>
         
         <div class="text-center">
           <h4 class="font-serif font-bold text-brand-navy mb-4">Rectangle Advertisement</h4>
-          <AdSlot size="rectangle" position="sidebar" />
+          <AdSlot slot="sidebar_rect" />
         </div>
       </div>
     </div>
@@ -276,7 +276,7 @@ import AdSlot from '../components/AdSlot.astro';
           Ready to Reach Your Community?
         </h2>
         <p class="text-xl text-brand-light mb-8 max-w-2xl mx-auto">
-          Join the local businesses that trust Community Observer to connect them with their neighbors. 
+          Join the local businesses that trust <em>Community Observer</em> to connect them with their neighbors. 
           Let's create an advertising campaign that gets results.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">

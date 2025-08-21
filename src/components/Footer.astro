@@ -18,7 +18,7 @@ const currentYear = new Date().getFullYear();
             height={40}
             class="rounded"
           />
-          <h3 class="text-xl font-serif font-bold">Community Observer</h3>
+          <h3 class="text-xl font-serif font-bold"><em>Community Observer</em></h3>
         </div>
         <p class="text-brand-light mb-4 max-w-md">
           Your trusted local newspaper delivering community news, events, and stories that matter to your neighborhood. Published weekly with local content by and for the community.
@@ -66,9 +66,9 @@ const currentYear = new Date().getFullYear();
 
     <!-- Bottom Bar -->
     <div class="border-t border-brand-gray/30 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-      <p class="text-brand-light text-sm">
-        © {currentYear} Community Observer. All rights reserved.
-      </p>
+              <p class="text-brand-light text-sm">
+          © <span id="footer-year">{currentYear}</span> <em>Community Observer</em>. All rights reserved.
+        </p>
       <div class="flex space-x-6 mt-4 md:mt-0">
         <a href="/privacy" class="text-brand-light hover:text-white text-sm transition-colors">
           Privacy Policy
@@ -81,6 +81,15 @@ const currentYear = new Date().getFullYear();
         </a>
       </div>
     </div>
+
+    <script is:inline>
+      if (typeof window !== 'undefined') {
+        const yearElement = document.getElementById('footer-year');
+        if (yearElement) {
+          yearElement.textContent = String(new Date().getFullYear());
+        }
+      }
+    </script>
   </div>
 </footer>
 
