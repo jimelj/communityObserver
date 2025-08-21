@@ -166,9 +166,9 @@ async function handleSubmissionForm(formData) {
   
   for (const file of attachments) {
     if (file && file.size > 0) {
-      // Check file size (10MB limit)
-      if (file.size > 10 * 1024 * 1024) {
-        throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`);
+      // Check file size (5MB limit for Resend API)
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error(`File ${file.name} is too large. Maximum size is 5MB for email attachments.`);
       }
       
       // Check file type
@@ -244,7 +244,15 @@ async function handleSubmissionForm(formData) {
         console.log('File buffer size:', buffer.byteLength);
         // Convert ArrayBuffer to base64 using native browser API
         const bytes = new Uint8Array(buffer);
-        const base64 = btoa(String.fromCharCode.apply(null, bytes));
+        
+        // Handle large files by chunking the conversion
+        let binary = '';
+        const chunkSize = 8192; // Process in 8KB chunks
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          const chunk = bytes.slice(i, i + chunkSize);
+          binary += String.fromCharCode.apply(null, chunk);
+        }
+        const base64 = btoa(binary);
         console.log('Base64 conversion successful for:', file.name);
         return {
           filename: file.name,
