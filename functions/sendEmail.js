@@ -121,9 +121,9 @@ async function handleContactForm(formData) {
   }
   
   return {
-    // to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
+    to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
     // to: 'jjoseph@cbaol.com',
-    to: 'jimelj@gmail.com',
+    // to: 'jimelj@gmail.com',
     subject: `Contact Form Submission from ${name}`,
     html: `
       <h2>New Contact Form Submission</h2>
@@ -233,7 +233,8 @@ async function handleSubmissionForm(formData) {
   `;
   
   const emailData = {
-    to: 'jimelj@gmail.com',
+    to: 'info@thecommunityobserver.com',
+    // to: 'jimelj@gmail.com',
     subject: `Content Submission: ${title}`,
     html: emailContent,
     replyTo: email
