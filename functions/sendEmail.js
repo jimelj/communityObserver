@@ -145,35 +145,108 @@ async function handleContactForm(formData) {
 async function handleSubmissionForm(formData) {
   const name = formData.get('name');
   const email = formData.get('email');
+  const phone = formData.get('phone') || 'Not provided';
+  const organization = formData.get('organization') || 'Not provided';
   const submissionType = formData.get('submissionType');
   const title = formData.get('title');
+  const description = formData.get('description');
   const content = formData.get('content');
+  const additionalInfo = formData.get('additionalInfo');
+  const urgent = formData.get('urgent') === 'on';
+  const anonymous = formData.get('anonymous') === 'on';
+  const contactBack = formData.get('contactBack') === 'on';
   
-  if (!name || !email || !submissionType || !title || !content) {
+  if (!name || !email || !submissionType || !title || !description || !content) {
     throw new Error('Missing required fields');
   }
   
-  return {
-    to: 'janice@thecommunityobserver.com',
-    subject: `Editorial Submission: ${title}`,
-    html: `
-      <h2>New Editorial Submission</h2>
-      <p><strong>Submitter:</strong> ${escapeHtml(name)}</p>
-      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
-      <p><strong>Submission Type:</strong> ${escapeHtml(submissionType)}</p>
-      <p><strong>Title:</strong> ${escapeHtml(title)}</p>
-      <p><strong>Content:</strong></p>
-      <div style="background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
-        ${escapeHtml(content).replace(/\n/g, '<br>')}
+  // Handle file attachments
+  const attachments = formData.getAll('attachments');
+  const validFiles = [];
+  
+  for (const file of attachments) {
+    if (file && file.size > 0) {
+      // Check file size (10MB limit)
+      if (file.size > 10 * 1024 * 1024) {
+        throw new Error(`File ${file.name} is too large. Maximum size is 10MB.`);
+      }
+      
+      // Check file type
+      const allowedTypes = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/tiff',
+        'application/pdf', 'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error(`File type ${file.type} is not allowed.`);
+      }
+      
+      validFiles.push(file);
+    }
+  }
+  
+  const emailContent = `
+    <h2>New Content Submission - Community Observer</h2>
+    
+    <h3>Content Details</h3>
+    <p><strong>Content Type:</strong> ${escapeHtml(submissionType)}</p>
+    <p><strong>Title:</strong> ${escapeHtml(title)}</p>
+    <p><strong>Description:</strong> ${escapeHtml(description)}</p>
+    
+    <h3>Contact Information</h3>
+    <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+    ${phone !== 'Not provided' ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ''}
+    ${organization !== 'Not provided' ? `<p><strong>Organization:</strong> ${escapeHtml(organization)}</p>` : ''}
+    
+    <h3>Content</h3>
+    <div style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
+      ${escapeHtml(content).replace(/\n/g, '<br>')}
+    </div>
+    
+    ${additionalInfo ? `
+      <h3>Additional Information</h3>
+      <div style="white-space: pre-wrap; background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 10px 0;">
+        ${escapeHtml(additionalInfo).replace(/\n/g, '<br>')}
       </div>
-      <hr>
-      <p style="color: #666; font-size: 12px;">
-        Submitted from Community Observer website submission form<br>
-        Timestamp: ${new Date().toISOString()}
-      </p>
-    `,
+    ` : ''}
+    
+    <h3>Publication Preferences</h3>
+    <ul>
+      <li><strong>Time-sensitive:</strong> ${urgent ? 'Yes' : 'No'}</li>
+      <li><strong>Anonymous publication:</strong> ${anonymous ? 'Yes' : 'No'}</li>
+      <li><strong>Contact for more info:</strong> ${contactBack ? 'Yes' : 'No'}</li>
+    </ul>
+    
+    <h3>Attachments</h3>
+    <p>Number of files attached: ${validFiles.length}</p>
+    ${validFiles.map(file => `<p>• ${escapeHtml(file.name)} (${(file.size / 1024 / 1024).toFixed(2)} MB)</p>`).join('')}
+    
+    <hr style="margin: 20px 0;">
+    <p><em>This submission was received from the Community Observer website content submission form.</em></p>
+    <p><em>Submitted on: ${new Date().toLocaleString()}</em></p>
+  `;
+  
+  const emailData = {
+    to: 'jimelj@gmail.com',
+    subject: `Content Submission: ${title}`,
+    html: emailContent,
     replyTo: email
   };
+  
+  // Add attachments if any
+  if (validFiles.length > 0) {
+    emailData.attachments = await Promise.all(validFiles.map(async (file) => {
+      const buffer = await file.arrayBuffer();
+      return {
+        filename: file.name,
+        content: Buffer.from(buffer).toString('base64')
+      };
+    }));
+  }
+  
+  return emailData;
 }
 
 // Send email using external service (example with Resend API)
@@ -194,7 +267,8 @@ async function sendEmail(emailData, env) {
           to: emailData.to,
           subject: emailData.subject,
           html: emailData.html,
-          reply_to: emailData.replyTo
+          reply_to: emailData.replyTo,
+          ...(emailData.attachments && { attachments: emailData.attachments })
         })
       });
       if (!response.ok) {
