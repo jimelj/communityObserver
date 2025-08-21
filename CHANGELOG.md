@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.1.0] - 2025-01-XX
+## [1.1.0] - 2025-08-21
 
 ### 🚀 Major Features
 
@@ -116,7 +116,7 @@
 
 ---
 
-## [1.0.0] - 2025-01-XX
+## [1.0.0] - 2025-08-05
 
 ### 🎉 Initial Release
 - **Community Observer website** with local news focus
