@@ -1,6 +1,4 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(env.RESEND_API_KEY);
+// Using native fetch instead of Resend SDK for Cloudflare Functions compatibility
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -150,7 +148,7 @@ export async function onRequestPost(context) {
       <p><em>Submitted on: ${new Date().toLocaleString()}</em></p>
     `;
     
-    // Send email
+    // Send email using Resend API with native fetch
     const emailData = {
       from: 'Community Observer <noreply@thecommunityobserver.com>',
       to: ['jimelj@gmail.com'],
@@ -164,12 +162,23 @@ export async function onRequestPost(context) {
         const buffer = await file.arrayBuffer();
         return {
           filename: file.name,
-          content: Buffer.from(buffer)
+          content: Buffer.from(buffer).toString('base64')
         };
       }));
     }
     
-    await resend.emails.send(emailData);
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(emailData)
+    });
+    
+    if (!resendResponse.ok) {
+      throw new Error(`Resend API error: ${resendResponse.status}`);
+    }
     
     // Send confirmation email to submitter
     const confirmationContent = `
@@ -202,12 +211,24 @@ export async function onRequestPost(context) {
       The Community Observer Editorial Team</p>
     `;
     
-    await resend.emails.send({
-      from: 'Community Observer <noreply@thecommunityobserver.com>',
-      to: [email],
-      subject: 'Content Submission Received - Community Observer',
-      html: confirmationContent
+    // Send confirmation email to submitter
+    const confirmationResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'Community Observer <noreply@thecommunityobserver.com>',
+        to: [email],
+        subject: 'Content Submission Received - Community Observer',
+        html: confirmationContent
+      })
     });
+    
+    if (!confirmationResponse.ok) {
+      console.error('Failed to send confirmation email:', confirmationResponse.status);
+    }
     
     return new Response(JSON.stringify({ 
       success: true,
