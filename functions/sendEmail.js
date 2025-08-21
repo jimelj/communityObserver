@@ -2,13 +2,17 @@
 export async function onRequestPost(context) {
   const { request, env } = context;
   
+  console.log('sendEmail function called');
+  console.log('Request method:', request.method);
+  console.log('Request URL:', request.url);
+  
   try {
     // Parse form data
     const formData = await request.formData();
     const formType = formData.get('formType');
     
     // Honeypot spam protection
-    const honeypot = formData.get('honeypot');
+    const honeypot = formData.get('website');
     if (honeypot) {
       return new Response('Spam detected', { status: 400 });
     }
@@ -247,10 +251,13 @@ async function handleSubmissionForm(formData) {
         
         // Handle large files by chunking the conversion
         let binary = '';
-        const chunkSize = 8192; // Process in 8KB chunks
+        const chunkSize = 1024; // Process in 1KB chunks to avoid apply() limits
         for (let i = 0; i < bytes.length; i += chunkSize) {
           const chunk = bytes.slice(i, i + chunkSize);
-          binary += String.fromCharCode.apply(null, chunk);
+          // Use a loop instead of apply() to avoid stack overflow
+          for (let j = 0; j < chunk.length; j++) {
+            binary += String.fromCharCode(chunk[j]);
+          }
         }
         const base64 = btoa(binary);
         console.log('Base64 conversion successful for:', file.name);
