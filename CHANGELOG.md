@@ -12,6 +12,20 @@
 - **Archived original**: Preserved old version as leadership-letter-old.astro
 - **PDF update**: Now links to exec-letter-v2.pdf
 
+#### **Sample Article Branding**
+- **Added "SAMPLE ARTICLE:" prefix**: All article titles now clearly indicate sample content
+- **Updated all article JSON files**: Added prefix to local-business-expansion, community-center-approval, summer-festival-2025, and youth-soccer-championship
+- **Dynamic homepage cards**: Replaced hardcoded article cards with dynamic generation from JSON files
+- **Improved consistency**: Homepage cards now automatically reflect JSON content
+
+### 🔧 Technical Improvements
+
+#### **Dynamic Content Generation**
+- **Homepage optimization**: Article cards now generated dynamically from JSON files
+- **Single source of truth**: Eliminated hardcoded article data on homepage
+- **Automatic updates**: Cards automatically reflect changes to article JSON files
+- **Better maintainability**: Reduced manual maintenance of homepage content
+
 ### 🗂️ File Structure Changes
 
 #### **Added Files**
@@ -19,6 +33,8 @@
 
 #### **Updated Files**
 - `src/pages/leadership-letter.astro` - Complete content refresh with new messaging
+- `src/pages/index.astro` - Implemented dynamic article card generation
+- `src/data/articles/*.json` - Added "SAMPLE ARTICLE:" prefix to all titles
 
 ---
 

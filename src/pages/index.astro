@@ -3,6 +3,11 @@ import Page from '../layouts/Page.astro';
 import Hero from '../components/Hero.astro';
 import Card from '../components/Card.astro';
 import AdSlot from '../components/AdSlot.astro';
+import { getAllArticles } from '../utils/articles.js';
+
+// Get the latest articles for the homepage
+const articles = await getAllArticles();
+const featuredArticles = articles.slice(0, 3); // Show the 3 most recent articles
 ---
 
 <Page
@@ -65,39 +70,18 @@ import AdSlot from '../components/AdSlot.astro';
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-        <!-- Featured Article 1 -->
-        <Card
-          title="Community Parade Returns This Fall"
-          description="The annual community parade is back with a new route through downtown, featuring local organizations, schools, and businesses."
-          image="/images/placeholder-parade.jpg"
-          href="/articles/summer-festival-2025"
-          date="2025-08-08"
-          author="Staff Report"
-          tags={["community", "events"]}
-          featured={true}
-        />
-
-        <!-- Featured Article 2 -->
-        <Card
-          title="Local Youth Sports Season Kicks Off"
-          description="Fall sports season begins with new teams and exciting matchups. Registration is still open for several leagues."
-          image="/images/placeholder-sports.jpg"
-          href="/articles/youth-soccer-championship"
-          date="2025-08-07"
-          author="Sports Desk"
-          tags={["sports", "youth"]}
-        />
-
-        <!-- Featured Article 3 -->
-        <Card
-          title="Town Council Approves New Community Center"
-          description="After months of planning, the new community center project gets the green light with construction starting next spring."
-          image="/images/placeholder-council.jpg"
-          href="/articles/community-center-approval"
-          date="2025-08-06"
-          author="City Reporter"
-          tags={["government", "community"]}
-        />
+        {featuredArticles.map((article) => (
+          <Card
+            title={article.title}
+            description={article.description}
+            image={article.image}
+            href={article.href}
+            date={article.date}
+            author={article.author}
+            tags={article.tags}
+            featured={article.featured}
+          />
+        ))}
       </div>
 
       <div class="text-center">
