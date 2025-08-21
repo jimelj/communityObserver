@@ -316,6 +316,63 @@ async function sendEmail(emailData, env) {
       }
       
       console.log('Email sent successfully via Resend API');
+      
+      // Send confirmation email to submitter if this is a content submission
+      if (emailData.replyTo && emailData.subject.includes('Content Submission')) {
+        try {
+          const confirmationContent = `
+            <h2>Content Submission Received - Community Observer</h2>
+            
+            <p>Dear ${emailData.replyTo.split('@')[0]},</p>
+            
+            <p>Thank you for submitting your content to <em>Community Observer</em>. We have received your submission and will review it according to our editorial guidelines.</p>
+            
+            <h3>Submission Details</h3>
+            <p><strong>Subject:</strong> ${emailData.subject.replace('Content Submission: ', '')}</p>
+            <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+            
+            <h3>What Happens Next?</h3>
+            <ul>
+              <li>Our editorial team will review your submission</li>
+              <li>We may contact you for additional information or clarification</li>
+              <li>If approved, your content will be scheduled for publication</li>
+              <li>You will be notified of the publication date</li>
+            </ul>
+            
+            <p><strong>Please note:</strong> Submission does not guarantee publication. All content is subject to editorial review and space availability.</p>
+            
+            <p>If you have any questions, please contact us at info@thecommunityobserver.com.</p>
+            
+            <p>Thank you for contributing to your community!</p>
+            
+            <p>Best regards,<br>
+            The Community Observer Editorial Team</p>
+          `;
+          
+          const confirmationResponse = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: 'onboarding@resend.dev',
+              to: emailData.replyTo,
+              subject: 'Content Submission Received - Community Observer',
+              html: confirmationContent
+            })
+          });
+          
+          if (confirmationResponse.ok) {
+            console.log('Confirmation email sent successfully');
+          } else {
+            console.error('Failed to send confirmation email:', confirmationResponse.status);
+          }
+        } catch (error) {
+          console.error('Error sending confirmation email:', error);
+        }
+      }
+      
       return response.ok;
     }
     
