@@ -92,14 +92,17 @@ function validateForm(form, formData) {
   
   // Detect form type based on formType field or form structure
   const formType = getValue('formType');
+  console.log('Form type detected:', formType);
   let requiredFields;
   
   if (formType === 'Submission') {
     // Content submission form
     requiredFields = ['name', 'email', 'submissionType', 'title', 'description', 'content'];
+    console.log('Using content submission validation');
   } else {
     // Contact form (default)
     requiredFields = ['name', 'email', 'message'];
+    console.log('Using contact form validation');
   }
   
   // Check required fields
