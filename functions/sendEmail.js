@@ -239,9 +239,12 @@ async function handleSubmissionForm(formData) {
   if (validFiles.length > 0) {
     emailData.attachments = await Promise.all(validFiles.map(async (file) => {
       const buffer = await file.arrayBuffer();
+      // Convert ArrayBuffer to base64 using native browser API
+      const bytes = new Uint8Array(buffer);
+      const base64 = btoa(String.fromCharCode.apply(null, bytes));
       return {
         filename: file.name,
-        content: Buffer.from(buffer).toString('base64')
+        content: base64
       };
     }));
   }
