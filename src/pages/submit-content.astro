@@ -54,7 +54,7 @@ import Hero from '../components/Hero.astro';
           Content Submission Form
         </h2>
         
-        <form id="contentForm" class="space-y-6">
+        <form id="contentForm" class="space-y-6" action="/submit-content" method="POST">
           <!-- Honeypot field -->
           <div class="hidden">
             <input type="text" name="website" tabindex="-1" autocomplete="off">
@@ -365,7 +365,7 @@ import Hero from '../components/Hero.astro';
       const formData = new FormData(form as HTMLFormElement);
       
       try {
-        const response = await fetch('/api/submit-content', {
+        const response = await fetch('/submit-content', {
           method: 'POST',
           body: formData
         });
