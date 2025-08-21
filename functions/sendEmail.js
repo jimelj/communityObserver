@@ -237,16 +237,25 @@ async function handleSubmissionForm(formData) {
   
   // Add attachments if any
   if (validFiles.length > 0) {
+    console.log('Processing attachments:', validFiles.length, 'files');
     emailData.attachments = await Promise.all(validFiles.map(async (file) => {
-      const buffer = await file.arrayBuffer();
-      // Convert ArrayBuffer to base64 using native browser API
-      const bytes = new Uint8Array(buffer);
-      const base64 = btoa(String.fromCharCode.apply(null, bytes));
-      return {
-        filename: file.name,
-        content: base64
-      };
+      try {
+        const buffer = await file.arrayBuffer();
+        console.log('File buffer size:', buffer.byteLength);
+        // Convert ArrayBuffer to base64 using native browser API
+        const bytes = new Uint8Array(buffer);
+        const base64 = btoa(String.fromCharCode.apply(null, bytes));
+        console.log('Base64 conversion successful for:', file.name);
+        return {
+          filename: file.name,
+          content: base64
+        };
+      } catch (error) {
+        console.error('Error processing file:', file.name, error);
+        throw error;
+      }
     }));
+    console.log('All attachments processed successfully');
   }
   
   return emailData;
@@ -257,6 +266,14 @@ async function sendEmail(emailData, env) {
   try {
     // If using Resend API (you would need to set RESEND_API_KEY in environment)
     if (env.RESEND_API_KEY) {
+      console.log('Sending email to Resend API...');
+      console.log('Email data:', {
+        to: emailData.to,
+        subject: emailData.subject,
+        hasAttachments: !!emailData.attachments,
+        attachmentCount: emailData.attachments ? emailData.attachments.length : 0
+      });
+      
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
@@ -274,10 +291,16 @@ async function sendEmail(emailData, env) {
           ...(emailData.attachments && { attachments: emailData.attachments })
         })
       });
+      
+      console.log('Resend API response status:', response.status);
+      
       if (!response.ok) {
         const text = await response.text().catch(() => '');
         console.error('Resend error:', response.status, text);
+        throw new Error(`Email sending failed: ${response.status} - ${text}`);
       }
+      
+      console.log('Email sent successfully via Resend API');
       return response.ok;
     }
     
