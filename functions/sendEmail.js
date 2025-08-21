@@ -120,10 +120,10 @@ async function handleContactForm(formData) {
     throw new Error('Invalid email format');
   }
   
-  return {
-    to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
-    // to: 'jjoseph@cbaol.com',
-    // to: 'jimelj@gmail.com',
+    return {
+      to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
+      // to: 'jjoseph@cbaol.com',
+      // to: 'jimelj@gmail.com',
     subject: `Contact Form Submission from ${name}`,
     html: `
       <h2>New Contact Form Submission</h2>
@@ -297,9 +297,8 @@ async function sendEmail(emailData, env) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // Resend requires a verified domain for the From address.
-          // Use the Resend onboarding sender for testing to avoid 422 errors.
-          from: 'onboarding@resend.dev',
+          // Use the verified domain for sending emails
+          from: 'noreply@mail.thecommunityobserver.com',
           to: emailData.to,
           subject: emailData.subject,
           html: emailData.html,
@@ -357,7 +356,7 @@ async function sendEmail(emailData, env) {
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              from: 'onboarding@resend.dev',
+              from: 'noreply@mail.thecommunityobserver.com',
               to: emailData.replyTo,
               subject: 'Content Submission Received - Community Observer',
               html: confirmationContent
