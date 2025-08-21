@@ -1,6 +1,21 @@
 # Changelog
 
-## [1.2.0] - 2025-08-21
+## [1.3.0] - 2025-08-21
+
+### 🚀 Major Features
+
+#### **Content Submission System**
+- **Dedicated submission page**: Created comprehensive content submission form at `/submit-content`
+- **File upload support**: Multiple file attachments (photos, documents) up to 10MB each
+- **Email-based workflow**: All submissions sent via email with file attachments
+- **Professional confirmation**: Automatic confirmation emails to submitters
+- **Guideline integration**: Built-in validation and guideline reminders
+
+#### **Enhanced User Experience**
+- **Visual file management**: Shows selected files with remove options
+- **Real-time validation**: Word count tracking and file type validation
+- **Multiple content types**: News articles, event listings, photo submissions, etc.
+- **Publication preferences**: Time-sensitive, anonymous, contact back options
 
 ### 📝 Content Updates
 
@@ -26,15 +41,39 @@
 - **Automatic updates**: Cards automatically reflect changes to article JSON files
 - **Better maintainability**: Reduced manual maintenance of homepage content
 
+#### **Form Processing**
+- **Cloudflare Function**: New `submitContent.js` for handling content submissions
+- **File handling**: Secure file processing with automatic cleanup
+- **Rate limiting**: 5-minute cooldown between submissions
+- **Spam protection**: Honeypot field and validation
+- **Email delivery**: Professional HTML emails with attachments
+
 ### 🗂️ File Structure Changes
 
 #### **Added Files**
 - `src/pages/leadership-letter-old.astro` (archived original version)
+- `src/pages/submit-content.astro` (comprehensive content submission form)
+- `functions/submitContent.js` (Cloudflare Function for form processing)
 
 #### **Updated Files**
 - `src/pages/leadership-letter.astro` - Complete content refresh with new messaging
 - `src/pages/index.astro` - Implemented dynamic article card generation
 - `src/data/articles/*.json` - Added "SAMPLE ARTICLE:" prefix to all titles
+- `src/components/Header.astro` - Added "Submit Content" to navigation
+- `src/pages/submission-guidelines.astro` - Updated to point to new submission form
+
+### 🎯 Benefits
+
+- **Professional workflow**: Dedicated submission system separate from contact form
+- **File support**: Multiple document and photo uploads
+- **Email-based**: No database required, all submissions via email
+- **User-friendly**: Clear guidelines and validation feedback
+- **Secure**: Files automatically cleaned up after email delivery
+- **Scalable**: Easy to manage and maintain
+
+---
+
+## [1.2.0] - 2025-08-21
 
 ---
 

@@ -1,0 +1,397 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="Submit Content - Community Observer"
+  description="Submit your community stories, events, photos, and news to Community Observer. Follow our guidelines for the best chance of publication."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Submit Your Content"
+    subtitle="Share Your Community Stories"
+    description="We welcome submissions from community members. Follow our guidelines to ensure your content has the best chance of being published."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Guidelines Summary -->
+      <div class="bg-brand-light/20 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+          Quick Guidelines
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <h3 class="font-semibold text-brand-navy mb-2">News Articles</h3>
+            <p class="text-brand-gray">Up to 800 words. Include who, what, when, where, why.</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-brand-navy mb-2">Event Listings</h3>
+            <p class="text-brand-gray">Submit at least two weeks before event. Include all details.</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-brand-navy mb-2">Photo Submissions</h3>
+            <p class="text-brand-gray">High-resolution (300 DPI minimum) in JPEG, PNG, or TIFF format.</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-brand-navy mb-2">Deadline</h3>
+            <p class="text-brand-gray">All content due by 5:00 PM two Wednesdays prior to publication.</p>
+          </div>
+        </div>
+        <div class="mt-4">
+          <a href="/submission-guidelines" class="text-brand-navy hover:text-brand-gray font-medium">
+            View Complete Guidelines →
+          </a>
+        </div>
+      </div>
+
+      <!-- Submission Form -->
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-6">
+          Content Submission Form
+        </h2>
+        
+        <form id="contentForm" class="space-y-6">
+          <!-- Honeypot field -->
+          <div class="hidden">
+            <input type="text" name="website" tabindex="-1" autocomplete="off">
+          </div>
+
+          <!-- Content Type -->
+          <div>
+            <label for="contentType" class="block text-sm font-medium text-brand-navy mb-2">
+              Content Type *
+            </label>
+            <select 
+              id="contentType" 
+              name="contentType" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+            >
+              <option value="">Select content type...</option>
+              <option value="news-article">News Article</option>
+              <option value="event-listing">Event Listing</option>
+              <option value="photo-submission">Photo Submission</option>
+              <option value="community-announcement">Community Announcement</option>
+              <option value="sports-report">Sports Report</option>
+              <option value="business-news">Business News</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <!-- Contact Information -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="name" class="block text-sm font-medium text-brand-navy mb-2">
+                Your Name *
+              </label>
+              <input 
+                type="text" 
+                id="name" 
+                name="name" 
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                placeholder="Your full name"
+              >
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-brand-navy mb-2">
+                Email Address *
+              </label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                placeholder="your.email@example.com"
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="phone" class="block text-sm font-medium text-brand-navy mb-2">
+                Phone Number
+              </label>
+              <input 
+                type="tel" 
+                id="phone" 
+                name="phone"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                placeholder="(555) 123-4567"
+              >
+            </div>
+            <div>
+              <label for="organization" class="block text-sm font-medium text-brand-navy mb-2">
+                Organization (if applicable)
+              </label>
+              <input 
+                type="text" 
+                id="organization" 
+                name="organization"
+                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+                placeholder="Your organization name"
+              >
+            </div>
+          </div>
+
+          <!-- Content Details -->
+          <div>
+            <label for="title" class="block text-sm font-medium text-brand-navy mb-2">
+              Content Title *
+            </label>
+            <input 
+              type="text" 
+              id="title" 
+              name="title" 
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+              placeholder="Enter a compelling title for your content"
+            >
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-brand-navy mb-2">
+              Brief Description *
+            </label>
+            <textarea 
+              id="description" 
+              name="description" 
+              required
+              rows="3"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+              placeholder="Provide a brief summary of your content (1-2 sentences)"
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="content" class="block text-sm font-medium text-brand-navy mb-2">
+              Full Content *
+            </label>
+            <textarea 
+              id="content" 
+              name="content" 
+              required
+              rows="10"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+              placeholder="Write your full article, event details, or announcement here..."
+            ></textarea>
+            <div class="mt-2 text-sm text-brand-gray">
+              <span id="wordCount">0</span> words (News articles: up to 800 words recommended)
+            </div>
+          </div>
+
+          <!-- File Uploads -->
+          <div>
+            <label for="attachments" class="block text-sm font-medium text-brand-navy mb-2">
+              Attachments (Photos, Documents) - Multiple files allowed
+            </label>
+            <input 
+              type="file" 
+              id="attachments" 
+              name="attachments" 
+              multiple
+              accept=".jpg,.jpeg,.png,.tiff,.pdf,.doc,.docx"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-navy file:text-white hover:file:bg-brand-gray"
+            >
+            <div class="mt-2 text-sm text-brand-gray">
+              <strong>Multiple files allowed:</strong> You can select multiple files at once or add them one by one.<br>
+              Accepted formats: JPEG, PNG, TIFF, PDF, DOC, DOCX. Max file size: 10MB each.
+            </div>
+            <div id="fileList" class="mt-3 space-y-2"></div>
+          </div>
+
+          <!-- Additional Information -->
+          <div>
+            <label for="additionalInfo" class="block text-sm font-medium text-brand-navy mb-2">
+              Additional Information
+            </label>
+            <textarea 
+              id="additionalInfo" 
+              name="additionalInfo" 
+              rows="4"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy focus:border-transparent"
+              placeholder="Any additional details, special requests, or notes for the editorial team..."
+            ></textarea>
+          </div>
+
+          <!-- Publication Preferences -->
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-3">
+              Publication Preferences
+            </label>
+            <div class="space-y-3">
+              <label class="flex items-center">
+                <input type="checkbox" name="urgent" class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">This is time-sensitive content</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="anonymous" class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Publish anonymously (contact info still required)</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="contactBack" class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Please contact me for additional information</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Agreement -->
+          <div class="bg-brand-light/10 rounded-lg p-4">
+            <label class="flex items-start">
+              <input type="checkbox" name="agreement" required class="mr-3 mt-1 text-brand-navy focus:ring-brand-navy">
+              <span class="text-sm text-brand-gray">
+                I agree to the <em>Community Observer</em> submission guidelines and understand that submission does not guarantee publication. I confirm that I have the right to submit this content and that it does not violate any copyright or privacy laws. *
+              </span>
+            </label>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button 
+              type="submit" 
+              class="btn-primary px-8 py-4 text-lg"
+              id="submitBtn"
+            >
+              Submit Content
+            </button>
+          </div>
+        </form>
+
+        <!-- Success/Error Messages -->
+        <div id="formMessage" class="mt-6 hidden"></div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="mt-12 bg-gradient-to-br from-brand-light/20 to-brand-paper rounded-2xl p-8">
+        <div class="text-center">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+            Need Help?
+          </h3>
+          <p class="text-brand-gray mb-6">
+            Have questions about submitting content or our guidelines?
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/submission-guidelines" class="btn-secondary">
+              View Complete Guidelines
+            </a>
+            <a href="/contact" class="btn-primary">
+              Contact Editorial Team
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+
+<script>
+  // Word count functionality
+  const contentTextarea = document.getElementById('content');
+  const wordCountSpan = document.getElementById('wordCount');
+  
+  function updateWordCount() {
+    const text = contentTextarea.value;
+    const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+    wordCountSpan.textContent = wordCount;
+    
+    // Visual feedback for word count
+    if (wordCount > 800) {
+      wordCountSpan.classList.add('text-red-600', 'font-semibold');
+    } else {
+      wordCountSpan.classList.remove('text-red-600', 'font-semibold');
+    }
+  }
+  
+  contentTextarea.addEventListener('input', updateWordCount);
+  
+  // File upload handling
+  const fileInput = document.getElementById('attachments');
+  const fileList = document.getElementById('fileList');
+  
+  fileInput.addEventListener('change', () => {
+    fileList.innerHTML = '';
+    const files = Array.from(fileInput.files);
+    
+    if (files.length > 0) {
+      files.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'flex items-center justify-between bg-brand-light/20 rounded-lg p-3';
+        fileItem.innerHTML = `
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-brand-navy mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+            <span class="text-sm font-medium text-brand-navy">${file.name}</span>
+            <span class="text-xs text-brand-gray ml-2">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+          </div>
+          <button type="button" class="text-red-500 hover:text-red-700 text-sm" onclick="removeFile(${index})">
+            Remove
+          </button>
+        `;
+        fileList.appendChild(fileItem);
+      });
+    }
+  });
+  
+  // Remove file function
+  window.removeFile = function(index) {
+    const dt = new DataTransfer();
+    const files = Array.from(fileInput.files);
+    files.splice(index, 1);
+    files.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+    fileInput.dispatchEvent(new Event('change'));
+  };
+  
+  // Form submission
+  const form = document.getElementById('contentForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formMessage = document.getElementById('formMessage');
+  
+  if (form && submitBtn && formMessage) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Disable submit button
+      (submitBtn as HTMLButtonElement).disabled = true;
+      (submitBtn as HTMLButtonElement).textContent = 'Submitting...';
+      
+      // Get form data
+      const formData = new FormData(form as HTMLFormElement);
+      
+      try {
+        const response = await fetch('/api/submit-content', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          // Success
+          formMessage.className = 'mt-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg';
+          formMessage.textContent = 'Thank you! Your content has been submitted successfully. We will review it and contact you if needed.';
+          (form as HTMLFormElement).reset();
+          updateWordCount();
+        } else {
+          // Error
+          formMessage.className = 'mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
+          formMessage.textContent = result.error || 'There was an error submitting your content. Please try again.';
+        }
+      } catch (error) {
+        formMessage.className = 'mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg';
+        formMessage.textContent = 'There was an error submitting your content. Please try again.';
+      }
+      
+      // Re-enable submit button
+      (submitBtn as HTMLButtonElement).disabled = false;
+      (submitBtn as HTMLButtonElement).textContent = 'Submit Content';
+      formMessage.classList.remove('hidden');
+    });
+  }
+</script>
