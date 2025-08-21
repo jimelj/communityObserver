@@ -82,7 +82,6 @@ async function handleFormSubmission(event) {
 }
 
 function validateForm(form, formData) {
-  const requiredFields = ['name', 'email', 'message'];
   const getValue = (fieldName) => {
     const el = form.querySelector(`[name="${fieldName}"]`);
     if (el && typeof el.value === 'string') return el.value;
@@ -90,6 +89,18 @@ function validateForm(form, formData) {
     const v = formData ? formData.get(fieldName) : null;
     return typeof v === 'string' ? v : '';
   };
+  
+  // Detect form type based on formType field or form structure
+  const formType = getValue('formType');
+  let requiredFields;
+  
+  if (formType === 'Submission') {
+    // Content submission form
+    requiredFields = ['name', 'email', 'submissionType', 'title', 'description', 'content'];
+  } else {
+    // Contact form (default)
+    requiredFields = ['name', 'email', 'message'];
+  }
   
   // Check required fields
   for (const field of requiredFields) {
@@ -113,7 +124,7 @@ function validateForm(form, formData) {
   }
   
   // Ensure hidden honeypot is empty (not filled by password managers)
-  const honeypot = getValue('honeypot');
+  const honeypot = getValue('website'); // Changed from 'honeypot' to 'website' to match our form
   if (honeypot) {
     return {
       isValid: false,
@@ -121,13 +132,24 @@ function validateForm(form, formData) {
     };
   }
   
-  // Check message length
-  const message = getValue('message');
-  if (message.length < 10) {
-    return {
-      isValid: false,
-      message: 'Please provide a more detailed message (at least 10 characters).'
-    };
+  // Check content length based on form type
+  if (formType === 'Submission') {
+    const content = getValue('content');
+    if (content.length < 50) {
+      return {
+        isValid: false,
+        message: 'Please provide more detailed content (at least 50 characters).'
+      };
+    }
+  } else {
+    // Contact form message length check
+    const message = getValue('message');
+    if (message.length < 10) {
+      return {
+        isValid: false,
+        message: 'Please provide a more detailed message (at least 10 characters).'
+      };
+    }
   }
   
   return { isValid: true };
