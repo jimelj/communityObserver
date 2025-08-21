@@ -38,12 +38,15 @@ export async function onRequestPost(context) {
     // Handle different form types
     switch (formType) {
       case 'Contact':
+        console.log('Processing Contact form');
         emailData = await handleContactForm(formData);
         break;
       case 'Submission':
+        console.log('Processing Submission form');
         emailData = await handleSubmissionForm(formData);
         break;
       default:
+        console.log('Invalid form type:', formType);
         return new Response('Invalid form type', { status: 400 });
     }
     
@@ -147,6 +150,7 @@ async function handleContactForm(formData) {
 
 // Process submission form data
 async function handleSubmissionForm(formData) {
+  console.log('handleSubmissionForm called');
   const name = formData.get('name');
   const email = formData.get('email');
   const phone = formData.get('phone') || 'Not provided';
