@@ -9,10 +9,7 @@ export interface Props {
 const { slot, className = '' } = Astro.props;
 const adConfig = adSlots[slot];
 
-console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
-
 if (!adConfig || !adConfig.enabled) {
-  console.log('AdSlot disabled or not found:', slot);
   return null;
 }
 ---
@@ -38,7 +35,8 @@ if (!adConfig || !adConfig.enabled) {
           height={adConfig.height}
           class="w-full h-auto rounded border border-brand-light/50"
           loading="lazy"
-          onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
+          onload="console.log('Ad image loaded successfully:', '{adConfig.src}');"
+          onerror="console.log('Ad image failed to load:', '{adConfig.src}'); this.style.display='none'; this.nextElementSibling.style.display='block';"
         />
         <div class="w-full h-auto rounded border border-brand-light/50 bg-gray-200 flex items-center justify-center" style="display: none; min-height: 100px;">
           <p class="text-gray-500 text-sm">Ad placeholder - {adConfig.width}x{adConfig.height}</p>
@@ -54,6 +52,8 @@ if (!adConfig || !adConfig.enabled) {
     )}
   </div>
 )}
+
+
 
 <style>
   .ad-slot {
