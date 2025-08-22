@@ -14,7 +14,7 @@ if (!adConfig || !adConfig.enabled) {
 }
 ---
 
-{adConfig.enabled && (
+{adConfig && adConfig.enabled ? (
   <div 
     class={`ad-slot ${className}`}
     data-ad-slot={slot}
@@ -36,7 +36,24 @@ if (!adConfig || !adConfig.enabled) {
           class="w-full h-auto rounded border border-brand-light/50"
           loading="lazy"
         />
+        <div class="w-full h-auto rounded border border-brand-light/50 bg-gray-200 flex items-center justify-center" style="display: none; min-height: 100px;">
+          <p class="text-gray-500 text-sm">Ad placeholder - {adConfig.width}x{adConfig.height}</p>
+        </div>
       </a>
+    )}
+    
+    {adConfig.type === 'adsense' && (
+      <div 
+        class="adsense-ad"
+        data-ad-slot={adConfig.adsenseSlot}
+        data-ad-format={adConfig.adsenseFormat}
+        data-full-width-responsive={adConfig.adsenseResponsive || "false"}
+      >
+        <!-- AdSense code will be inserted here via JavaScript -->
+        <div class="ad-placeholder bg-gray-100 border border-gray-300 rounded flex items-center justify-center" style={`width: ${adConfig.width}px; height: ${adConfig.height}px; max-width: 100%;`}>
+          <p class="text-gray-500 text-sm">AdSense Ad - {adConfig.width}x{adConfig.height}</p>
+        </div>
+      </div>
     )}
     
     {adConfig.type === 'html' && (
@@ -46,7 +63,7 @@ if (!adConfig || !adConfig.enabled) {
       />
     )}
   </div>
-)}
+) : null}
 
 <style>
   .ad-slot {
@@ -80,7 +97,7 @@ if (!adConfig || !adConfig.enabled) {
   }
   
   .ad-slot[data-ad-slot="sidebar_rect"] {
-    @apply w-full max-w-sm;
+    @apply w-full max-w-sm mx-auto;
   }
   
   .ad-slot[data-ad-slot="sidebar_rect"] img {

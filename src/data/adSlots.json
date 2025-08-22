@@ -1,12 +1,12 @@
 {
   "top_leaderboard": {
     "enabled": true,
-    "type": "image",
-    "src": "/ads/banner-placeholder.jpg",
-    "href": "#",
-    "alt": "Advertisement",
+    "type": "adsense",
     "width": 728,
-    "height": 90
+    "height": 90,
+    "adsenseSlot": "top_leaderboard",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "true"
   },
   "homepage_banner": {
     "enabled": true,
@@ -19,21 +19,21 @@
   },
   "sidebar_rect": {
     "enabled": true,
-    "type": "image", 
-    "src": "/ads/side-placeholder.jpg",
-    "href": "#",
-    "alt": "Advertisement",
+    "type": "adsense",
     "width": 300,
-    "height": 250
+    "height": 250,
+    "adsenseSlot": "sidebar_rect",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "false"
   },
   "in_article": {
-    "enabled": false,
-    "type": "image",
-    "src": "/ads/article-placeholder.jpg", 
-    "href": "#",
-    "alt": "Advertisement",
+    "enabled": true,
+    "type": "adsense",
     "width": 300,
-    "height": 250
+    "height": 250,
+    "adsenseSlot": "in_article",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "false"
   }
 }
 
