@@ -9,20 +9,11 @@ export interface Props {
 const { slot, className = '' } = Astro.props;
 const adConfig = adSlots[slot];
 
-// DEBUG: Always render something to see what's happening
+// DEBUG: Log what we're working with
 console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
-
-if (!adConfig || !adConfig.enabled) {
-  return (
-    <div style="border: 2px solid orange; padding: 10px; background: yellow;">
-      <p>DEBUG: Ad slot "{slot}" not enabled or not found</p>
-      <p>adConfig: {JSON.stringify(adConfig)}</p>
-    </div>
-  );
-}
 ---
 
-{adConfig.enabled && (
+{adConfig && adConfig.enabled ? (
   <div 
     class={`ad-slot ${className}`}
     data-ad-slot={slot}
@@ -61,6 +52,11 @@ if (!adConfig || !adConfig.enabled) {
         set:html={adConfig.content}
       />
     )}
+  </div>
+) : (
+  <div class="border-2 border-orange-500 p-2 bg-yellow-200">
+    <p>DEBUG: Ad slot "{slot}" not enabled or not found</p>
+    <p>adConfig: {JSON.stringify(adConfig)}</p>
   </div>
 )}
 
