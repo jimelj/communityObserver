@@ -8,9 +8,6 @@ export interface Props {
 
 const { slot, className = '' } = Astro.props;
 const adConfig = adSlots[slot];
-
-// DEBUG: Log what we're working with
-console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
 ---
 
 {adConfig && adConfig.enabled ? (
@@ -19,9 +16,7 @@ console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
     data-ad-slot={slot}
     role="complementary"
     aria-label="Advertisement"
-    style="border: 2px solid red; padding: 10px;"
   >
-    <!-- DEBUG: Ad slot {slot} - src: {adConfig.src} -->
     {adConfig.type === 'image' && (
       <a 
         href={adConfig.href}
@@ -36,9 +31,6 @@ console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
           height={adConfig.height}
           class="w-full h-auto rounded border border-brand-light/50"
           loading="lazy"
-          data-src={adConfig.src}
-          onload="console.log('Ad image loaded successfully:', this.dataset.src);"
-          onerror="console.log('Ad image failed to load:', this.dataset.src); this.style.display='none'; this.nextElementSibling.style.display='block';"
         />
         <div class="w-full h-auto rounded border border-brand-light/50 bg-gray-200 flex items-center justify-center" style="display: none; min-height: 100px;">
           <p class="text-gray-500 text-sm">Ad placeholder - {adConfig.width}x{adConfig.height}</p>
@@ -53,12 +45,7 @@ console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
       />
     )}
   </div>
-) : (
-  <div class="border-2 border-orange-500 p-2 bg-yellow-200">
-    <p>DEBUG: Ad slot "{slot}" not enabled or not found</p>
-    <p>adConfig: {JSON.stringify(adConfig)}</p>
-  </div>
-)}
+) : null}
 
 
 
@@ -94,7 +81,14 @@ console.log('AdSlot debug:', { slot, adConfig, enabled: adConfig?.enabled });
   }
   
   .ad-slot[data-ad-slot="sidebar_rect"] {
-    @apply w-full max-w-sm;
+    @apply w-full max-w-sm mx-auto;
+  }
+  
+  .ad-slot[data-ad-slot="sidebar_rect"] img {
+    width: 300px !important;
+    height: 250px !important;
+    max-width: 100%;
+    object-fit: contain;
   }
   
   .ad-slot[data-ad-slot="sidebar_rect"] img {
