@@ -2,7 +2,7 @@
 import adSlots from '../data/adSlots.json';
 
 export interface Props {
-  slot: 'top_leaderboard' | 'homepage_banner' | 'sidebar_rect' | 'in_article';
+  slot: 'top_leaderboard' | 'homepage_banner' | 'sidebar_rect' | 'in_article' | 'advertise_rect' | 'advertise_banner';
   className?: string;
 }
 
@@ -98,6 +98,18 @@ if (!adConfig || !adConfig.enabled) {
   
   .ad-slot[data-ad-slot="sidebar_rect"] {
     @apply w-full max-w-sm mx-auto;
+    display: block !important;
+    margin-bottom: 2rem !important;
+    text-align: center !important;
+    flex-direction: unset !important;
+    align-items: unset !important;
+    justify-content: unset !important;
+  }
+  
+  .ad-slot[data-ad-slot="sidebar_rect"] .adsense-ad {
+    display: block !important;
+    text-align: center !important;
+    margin: 0 auto !important;
   }
   
   .ad-slot[data-ad-slot="sidebar_rect"] img {
@@ -109,6 +121,29 @@ if (!adConfig || !adConfig.enabled) {
   
   .ad-slot[data-ad-slot="in_article"] {
     @apply w-full max-w-sm mx-auto my-8 float-right ml-6 mb-4;
+  }
+  
+  .ad-slot[data-ad-slot="advertise_banner"] {
+    @apply w-full mx-auto;
+    max-width: 728px;
+  }
+  
+  .ad-slot[data-ad-slot="advertise_banner"] img {
+    width: 728px !important;
+    height: 90px !important;
+    max-width: 100%;
+    object-fit: contain;
+  }
+  
+  .ad-slot[data-ad-slot="advertise_rect"] {
+    @apply w-full max-w-sm mx-auto;
+  }
+  
+  .ad-slot[data-ad-slot="advertise_rect"] img {
+    width: 300px !important;
+    height: 250px !important;
+    max-width: 100%;
+    object-fit: contain;
   }
   
   @media (max-width: 768px) {

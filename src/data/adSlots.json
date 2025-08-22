@@ -10,21 +10,39 @@
   },
   "homepage_banner": {
     "enabled": true,
-    "type": "image",
-    "src": "/ads/homepage-banner.jpg",
-    "href": "#",
-    "alt": "Advertisement",
+    "type": "adsense",
     "width": 728,
-    "height": 90
+    "height": 90,
+    "adsenseSlot": "8910818665",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "true"
   },
   "sidebar_rect": {
     "enabled": true,
     "type": "adsense",
     "width": 300,
     "height": 250,
-    "adsenseSlot": "sidebar_rect",
+    "adsenseSlot": "4109902211",
     "adsenseFormat": "auto",
     "adsenseResponsive": "false"
+  },
+  "advertise_banner": {
+    "enabled": true,
+    "type": "image",
+    "src": "/ads/banner-placeholder.jpg",
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 728,
+    "height": 90
+  },
+  "advertise_rect": {
+    "enabled": true,
+    "type": "image",
+    "src": "/ads/side-placeholder.jpg",
+    "href": "#",
+    "alt": "Advertisement",
+    "width": 300,
+    "height": 250
   },
   "in_article": {
     "enabled": true,
