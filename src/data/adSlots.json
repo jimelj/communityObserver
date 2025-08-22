@@ -1,6 +1,33 @@
 {
   "top_leaderboard": {
     "enabled": true,
+    "type": "adsense",
+    "width": 728,
+    "height": 90,
+    "adsenseSlot": "top_leaderboard",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "true"
+  },
+  "homepage_banner": {
+    "enabled": true,
+    "type": "adsense",
+    "width": 728,
+    "height": 90,
+    "adsenseSlot": "8910818665",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "true"
+  },
+  "sidebar_rect": {
+    "enabled": true,
+    "type": "adsense",
+    "width": 300,
+    "height": 250,
+    "adsenseSlot": "4109902211",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "false"
+  },
+  "advertise_banner": {
+    "enabled": true,
     "type": "image",
     "src": "/ads/banner-placeholder.jpg",
     "href": "#",
@@ -8,18 +35,9 @@
     "width": 728,
     "height": 90
   },
-  "homepage_banner": {
+  "advertise_rect": {
     "enabled": true,
     "type": "image",
-    "src": "/ads/homepage-banner.jpg",
-    "href": "#",
-    "alt": "Advertisement",
-    "width": 728,
-    "height": 90
-  },
-  "sidebar_rect": {
-    "enabled": true,
-    "type": "image", 
     "src": "/ads/side-placeholder.jpg",
     "href": "#",
     "alt": "Advertisement",
@@ -27,13 +45,13 @@
     "height": 250
   },
   "in_article": {
-    "enabled": false,
-    "type": "image",
-    "src": "/ads/article-placeholder.jpg", 
-    "href": "#",
-    "alt": "Advertisement",
+    "enabled": true,
+    "type": "adsense",
     "width": 300,
-    "height": 250
+    "height": 250,
+    "adsenseSlot": "in_article",
+    "adsenseFormat": "auto",
+    "adsenseResponsive": "false"
   }
 }
 
