@@ -104,6 +104,9 @@ export async function onRequestOptions() {
   });
 }
 
+// Import email configuration
+import { emailConfig } from '../src/data/emailConfig.js';
+
 // Process contact form data
 async function handleContactForm(formData) {
   const name = formData.get('name');
@@ -124,9 +127,7 @@ async function handleContactForm(formData) {
   }
   
     return {
-      to: 'info@thecommunityobserver.com', // original recipient (temporarily disabled for testing)
-      // to: 'jjoseph@cbaol.com',
-      // to: 'jimelj@gmail.com',
+      to: emailConfig.recipients,
     subject: `Contact Form Submission from ${name}`,
     html: `
       <h2>New Contact Form Submission</h2>
@@ -237,8 +238,7 @@ async function handleSubmissionForm(formData) {
   `;
   
   const emailData = {
-    to: 'info@thecommunityobserver.com',
-    // to: 'jimelj@gmail.com',
+    to: emailConfig.recipients,
     subject: `Content Submission: ${title}`,
     html: emailContent,
     replyTo: email
@@ -287,8 +287,10 @@ async function sendEmail(emailData, env) {
     // If using Resend API (you would need to set RESEND_API_KEY in environment)
     if (env.RESEND_API_KEY) {
       console.log('Sending email to Resend API...');
+      const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
       console.log('Email data:', {
-        to: emailData.to,
+        to: recipients,
+        recipientCount: recipients.length,
         subject: emailData.subject,
         hasAttachments: !!emailData.attachments,
         attachmentCount: emailData.attachments ? emailData.attachments.length : 0
@@ -303,7 +305,7 @@ async function sendEmail(emailData, env) {
         body: JSON.stringify({
           // Use the verified domain for sending emails
           from: 'noreply@mail.thecommunityobserver.com',
-          to: emailData.to,
+          to: Array.isArray(emailData.to) ? emailData.to : [emailData.to],
           subject: emailData.subject,
           html: emailData.html,
           reply_to: emailData.replyTo,
@@ -388,7 +390,12 @@ async function sendEmail(emailData, env) {
     }
     
     // Fallback: Log email data (for development/testing)
-    console.log('Email data:', emailData);
+    const recipients = Array.isArray(emailData.to) ? emailData.to : [emailData.to];
+    console.log('Email data:', {
+      ...emailData,
+      to: recipients,
+      recipientCount: recipients.length
+    });
     return true;
     
   } catch (error) {

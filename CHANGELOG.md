@@ -1,5 +1,64 @@
 # Changelog
 
+## [1.4.0] - 2025-01-27
+
+### 🎉 Major Announcement Feature
+
+#### **First Edition Launch Banner**
+- **Eye-catching announcement banner**: Added prominent banner for Community Observer's first edition launch
+- **September 22 launch date**: Highlighted launch week prominently
+- **Responsive design**: Beautiful gradient design with animated elements
+- **Call-to-action buttons**: Direct links to "Learn More" and "Contact Us"
+- **Strategic placement**: Positioned right after hero section for maximum visibility
+- **Professional styling**: Uses brand colors and typography consistently
+
+### 🔧 Technical Improvements
+
+#### **Email Configuration System**
+- **Centralized email management**: Created `src/data/emailConfig.js` for all email recipients
+- **Multiple recipients**: Both contact and submission forms now send to multiple email addresses
+- **Single source of truth**: Eliminated email address duplication across files
+- **Easy maintenance**: Update email recipients in one place
+- **Clean architecture**: Import configuration instead of hardcoding emails
+
+#### **Form Email Recipients**
+- **Contact form recipients**: 
+  - info@thecommunityobserver.com
+  - jjoseph@cbaol.com
+  - jimelj@gmail.com
+- **Content submission recipients**: Same recipients as contact form
+- **Consistent delivery**: Both forms use the same recipient list for simplicity
+
+### 🎨 UI/UX Improvements
+
+#### **Announcement Banner Features**
+- **Gradient background**: Red to orange gradient for high visibility
+- **Animated elements**: Subtle pulsing dots for visual interest
+- **Glass morphism**: Semi-transparent overlays with backdrop blur
+- **Mobile-responsive**: Optimized for all screen sizes
+- **Accessibility**: Proper contrast and semantic structure
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `src/components/AnnouncementBanner.astro` - First edition launch announcement banner
+- `src/data/emailConfig.js` - Centralized email configuration
+
+#### **Updated Files**
+- `src/pages/index.astro` - Added announcement banner after hero section
+- `functions/sendEmail.js` - Updated to use centralized email configuration
+- `CHANGELOG.md` - Added version 1.4.0 documentation
+
+### 🎯 Benefits
+
+- **Major announcement visibility**: Prominent banner for first edition launch
+- **Streamlined email management**: Single place to manage all email recipients
+- **Professional presentation**: Eye-catching design for important announcements
+- **Easy maintenance**: Simplified email configuration management
+- **Consistent delivery**: All forms use the same recipient configuration
+
+---
+
 ## [1.3.0] - 2025-08-21
 
 ### 🚀 Major Features

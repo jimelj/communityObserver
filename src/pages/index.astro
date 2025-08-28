@@ -1,6 +1,7 @@
 ---
 import Page from '../layouts/Page.astro';
 import Hero from '../components/Hero.astro';
+import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import Card from '../components/Card.astro';
 import AdSlot from '../components/AdSlot.astro';
 import { getAllArticles } from '../utils/articles.js';
@@ -24,6 +25,9 @@ const featuredArticles = articles.slice(0, 3); // Show the 3 most recent article
     sideImageSrc="/images/bannerphoto.png"
     sideImageAlt="Community gathering banner"
   />
+
+  <!-- First Edition Announcement Banner -->
+  <AnnouncementBanner />
 
   <!-- Homepage Banner Ad -->
   <div class="container mx-auto px-4">
