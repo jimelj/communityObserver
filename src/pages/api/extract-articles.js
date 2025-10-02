@@ -1,5 +1,4 @@
-import pdf from 'pdf-parse';
-
+// Use dynamic import for pdf-parse since it has ESM issues
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
 
@@ -64,7 +63,10 @@ export async function POST({ request }) {
     const buffer = Buffer.from(arrayBuffer);
     
     console.log('API: Parsing PDF...');
-    const pdfData = await pdf(buffer);
+    
+    // Dynamic import of pdf-parse to handle ESM issues
+    const pdfParse = (await import('pdf-parse')).default;
+    const pdfData = await pdfParse(buffer);
     
     console.log('API: PDF parsed successfully');
     console.log('API: Pages:', pdfData.numpages);
