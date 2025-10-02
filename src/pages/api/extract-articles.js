@@ -124,8 +124,154 @@ export async function POST({ request }) {
 function extractArticlesFromText(text) {
   const articles = [];
   
-  // For demonstration, let's create a simple extraction
-  // This will need to be customized based on your newspaper format
+  // Try to split the text into articles based on common newspaper patterns
+  // Look for patterns like "By [Author]" which typically indicates article start
+  const articlePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+([\w\s]+?)(?=By\s+[A-Z]|$)/gs;
+  
+  // Also try to find article titles (lines that are all caps or title case followed by content)
+  const lines = text.split('\n');
+  let currentArticle = null;
+  let articleCount = 0;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (!line) continue;
+    
+    // Check if this looks like an article title (longer than 10 chars, not all caps)
+    const isTitleLine = line.length > 15 && 
+                        line.length < 100 && 
+                        /[A-Z]/.test(line[0]) &&
+                        !line.match(/^\d+$/) &&
+                        !line.match(/^Page \d+/) &&
+                        !line.match(/^See\s+/);
+    
+    // Check if next few lines contain "By [Author]"
+    const nextFewLines = lines.slice(i, i + 5).join(' ');
+    const hasAuthorLine = /By\s+[A-Z][a-z]+/.test(nextFewLines);
+    
+    if (isTitleLine && hasAuthorLine && articleCount < 10) {
+      // This looks like the start of a new article
+      if (currentArticle && currentArticle.content.length > 50) {
+        // Save the previous article if it has substantial content
+        articles.push(createArticleObject(currentArticle, articleCount));
+        articleCount++;
+      }
+      
+      // Start a new article
+      currentArticle = {
+        title: line,
+        content: [],
+        author: null
+      };
+    } else if (currentArticle) {
+      // Check if this is an author line
+      const authorMatch = line.match(/^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+      if (authorMatch && !currentArticle.author) {
+        currentArticle.author = authorMatch[1];
+      } else {
+        // Add to content
+        currentArticle.content.push(line);
+      }
+    }
+  }
+  
+  // Add the last article
+  if (currentArticle && currentArticle.content.length > 50) {
+    articles.push(createArticleObject(currentArticle, articleCount));
+  }
+  
+  // If we didn't find enough articles, create chunks
+  if (articles.length < 2) {
+    return createArticleChunks(text);
+  }
+  
+  return articles;
+}
+
+function createArticleObject(articleData, index) {
+  const fullText = articleData.content.join(' ').trim();
+  const words = fullText.split(/\s+/);
+  const description = words.slice(0, 30).join(' ') + (words.length > 30 ? '...' : '');
+  
+  // Try to detect category from content
+  const contentLower = fullText.toLowerCase();
+  let category = 'community';
+  if (contentLower.includes('sport') || contentLower.includes('game') || contentLower.includes('team')) {
+    category = 'sports';
+  } else if (contentLower.includes('business') || contentLower.includes('company') || contentLower.includes('economic')) {
+    category = 'business';
+  } else if (contentLower.includes('council') || contentLower.includes('government') || contentLower.includes('mayor')) {
+    category = 'government';
+  } else if (contentLower.includes('school') || contentLower.includes('student') || contentLower.includes('education')) {
+    category = 'education';
+  }
+  
+  return {
+    id: `extracted-article-${index + 1}`,
+    title: articleData.title,
+    description: description,
+    date: new Date().toISOString().split('T')[0],
+    author: articleData.author || 'Community Observer',
+    category: category,
+    tags: [category, 'local', 'news'],
+    image: '/images/placeholder-council.jpg',
+    featured: index === 0,
+    content: [
+      {
+        type: 'paragraph',
+        class: 'lead',
+        text: words.slice(0, 50).join(' ') + (words.length > 50 ? '...' : '')
+      },
+      {
+        type: 'paragraph',
+        text: fullText
+      }
+    ],
+    wordCount: words.length
+  };
+}
+
+function createArticleChunks(text) {
+  // Fallback: split text into chunks of roughly 500 words each
+  const words = text.split(/\s+/);
+  const chunkSize = 500;
+  const chunks = [];
+  
+  for (let i = 0; i < words.length && chunks.length < 10; i += chunkSize) {
+    const chunk = words.slice(i, i + chunkSize);
+    const chunkText = chunk.join(' ');
+    
+    // Try to find a sentence end near the chunk boundary
+    const lastPeriod = chunkText.lastIndexOf('.');
+    const actualChunk = lastPeriod > chunkSize * 0.7 ? chunkText.substring(0, lastPeriod + 1) : chunkText;
+    
+    chunks.push({
+      id: `extracted-chunk-${chunks.length + 1}`,
+      title: `Article ${chunks.length + 1} from PDF`,
+      description: chunk.slice(0, 20).join(' ') + '...',
+      date: new Date().toISOString().split('T')[0],
+      author: 'Community Observer',
+      category: 'community',
+      tags: ['extracted', 'pdf'],
+      image: '/images/placeholder-council.jpg',
+      featured: chunks.length === 0,
+      content: [
+        {
+          type: 'paragraph',
+          text: actualChunk
+        }
+      ],
+      wordCount: chunk.length
+    });
+  }
+  
+  return chunks;
+}
+
+// Keep some sample articles for reference
+function getSampleArticles() {
   const mockArticles = [
       {
         id: 'extracted-article-1',
