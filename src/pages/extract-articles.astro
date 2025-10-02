@@ -59,7 +59,7 @@ import Hero from '../components/Hero.astro';
                 type="file" 
                 id="pdfFile" 
                 name="pdfFile" 
-                accept=".pdf"
+                accept="application/pdf,.pdf"
                 required
                 class="hidden"
               >
@@ -200,40 +200,89 @@ import Hero from '../components/Hero.astro';
   // Drag and drop functionality
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('border-brand-navy', 'bg-brand-light/10');
+  });
+
+  dropZone.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     dropZone.classList.add('border-brand-navy', 'bg-brand-light/10');
   });
 
   dropZone.addEventListener('dragleave', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
+    e.stopPropagation();
+    // Only remove styling if we're leaving the drop zone entirely
+    if (!dropZone.contains(e.relatedTarget as Node)) {
+      dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
+    }
   });
 
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
     
-    if (e.dataTransfer && e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type === 'application/pdf') {
-      fileInput.files = e.dataTransfer.files;
-      handleFileSelect(e.dataTransfer.files[0]);
+    console.log('Drop event triggered');
+    console.log('Files:', e.dataTransfer?.files);
+    
+    if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      console.log('Dropped file:', file.name, file.type);
+      
+      if (file.type === 'application/pdf') {
+        // Create a new FileList-like object
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        handleFileSelect(file);
+      } else {
+        showMessage('Please upload a PDF file only.', 'error');
+      }
     }
   });
 
   // Click to upload
-  dropZone.addEventListener('click', () => {
+  dropZone.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Drop zone clicked');
     fileInput.click();
   });
 
+  // Also add click handler to the entire drop zone area
+  const dropZoneContainer = document.querySelector('.border-2.border-dashed');
+  if (dropZoneContainer) {
+    dropZoneContainer.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Drop zone container clicked');
+      fileInput.click();
+    });
+  }
+
   fileInput.addEventListener('change', (e) => {
+    console.log('File input changed');
     const target = e.target as HTMLInputElement;
+    console.log('Files:', target.files);
     if (target.files && target.files.length > 0) {
-      handleFileSelect(target.files[0]);
+      const file = target.files[0];
+      console.log('Selected file:', file.name, file.type);
+      if (file.type === 'application/pdf') {
+        handleFileSelect(file);
+      } else {
+        showMessage('Please select a PDF file only.', 'error');
+      }
     }
   });
 
   function handleFileSelect(file: File) {
+    console.log('Handling file selection:', file.name, file.size, file.type);
     if (fileName) fileName.textContent = file.name;
     if (dropZone) dropZone.classList.add('hidden');
     if (fileInfo) fileInfo.classList.remove('hidden');
+    console.log('File selection UI updated');
   }
 
   removeFileBtn.addEventListener('click', () => {
