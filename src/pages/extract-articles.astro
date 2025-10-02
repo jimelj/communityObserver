@@ -1,0 +1,321 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="Extract Articles from PDF - Community Observer"
+  description="Upload a PDF newspaper and automatically extract articles for the Community Observer website."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Extract Articles from PDF"
+    subtitle="Convert Newspaper PDF to Website Articles"
+    description="Upload your newspaper PDF and we'll automatically extract 3-4 articles and format them for the website."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Instructions -->
+      <div class="bg-brand-light/20 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+          How It Works
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">1</div>
+            <h3 class="font-semibold text-brand-navy mb-2">Upload PDF</h3>
+            <p class="text-brand-gray">Upload your newspaper PDF file</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">2</div>
+            <h3 class="font-semibold text-brand-navy mb-2">AI Processing</h3>
+            <p class="text-brand-gray">Our system extracts and analyzes articles</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">3</div>
+            <h3 class="font-semibold text-brand-navy mb-2">Review & Publish</h3>
+            <p class="text-brand-gray">Review extracted articles and publish to website</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF Upload Form -->
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-6">
+          Upload Newspaper PDF
+        </h2>
+        
+        <form id="pdfUploadForm" class="space-y-6" enctype="multipart/form-data">
+          <!-- PDF Upload -->
+          <div>
+            <label for="pdfFile" class="block text-sm font-medium text-brand-navy mb-2">
+              Select PDF File *
+            </label>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-navy transition-colors">
+              <input 
+                type="file" 
+                id="pdfFile" 
+                name="pdfFile" 
+                accept=".pdf"
+                required
+                class="hidden"
+              >
+              <div id="dropZone" class="cursor-pointer">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="text-lg font-medium text-brand-navy mb-2">Click to upload or drag and drop</p>
+                <p class="text-sm text-brand-gray">PDF files only, max 50MB</p>
+              </div>
+              <div id="fileInfo" class="hidden mt-4">
+                <div class="flex items-center justify-center space-x-2">
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span id="fileName" class="text-sm font-medium text-brand-navy"></span>
+                  <button type="button" id="removeFile" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Processing Options -->
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-3">
+              Extraction Options
+            </label>
+            <div class="space-y-3">
+              <label class="flex items-center">
+                <input type="checkbox" name="extractImages" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Extract and include images</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="autoCategorize" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Automatically categorize articles</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="generateTags" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Generate relevant tags</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button 
+              type="submit" 
+              class="btn-primary px-8 py-4 text-lg"
+              id="extractBtn"
+            >
+              Extract Articles
+            </button>
+          </div>
+        </form>
+
+        <!-- Processing Status -->
+        <div id="processingStatus" class="hidden mt-8">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div class="flex items-center">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+              <div>
+                <h3 class="text-lg font-semibold text-blue-800">Processing PDF...</h3>
+                <p class="text-sm text-blue-600">This may take a few moments depending on the file size.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="extractionResults" class="hidden mt-8">
+          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Extracted Articles</h3>
+          <div id="articlesList" class="space-y-4">
+            <!-- Articles will be populated here -->
+          </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div id="formMessage" class="mt-6 hidden"></div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="mt-12 bg-gradient-to-br from-brand-light/20 to-brand-paper rounded-2xl p-8">
+        <div class="text-center">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+            Need Help?
+          </h3>
+          <p class="text-brand-gray mb-6">
+            Having trouble with the extraction process?
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/contact" class="btn-primary">
+              Contact Support
+            </a>
+            <a href="/submission-guidelines" class="btn-secondary">
+              View Guidelines
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+
+<script>
+  // File upload handling
+  const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+  const dropZone = document.getElementById('dropZone');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const removeFileBtn = document.getElementById('removeFile');
+  const form = document.getElementById('pdfUploadForm') as HTMLFormElement;
+  const processingStatus = document.getElementById('processingStatus');
+  const extractionResults = document.getElementById('extractionResults');
+  const articlesList = document.getElementById('articlesList');
+  const formMessage = document.getElementById('formMessage');
+
+  if (!fileInput || !dropZone || !fileInfo || !fileName || !removeFileBtn || !form || !processingStatus || !extractionResults || !articlesList || !formMessage) {
+    console.error('Required DOM elements not found');
+    return;
+  }
+
+  // Drag and drop functionality
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('border-brand-navy', 'bg-brand-light/10');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
+    
+    if (e.dataTransfer && e.dataTransfer.files.length > 0 && e.dataTransfer.files[0].type === 'application/pdf') {
+      fileInput.files = e.dataTransfer.files;
+      handleFileSelect(e.dataTransfer.files[0]);
+    }
+  });
+
+  // Click to upload
+  dropZone.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      handleFileSelect(target.files[0]);
+    }
+  });
+
+  function handleFileSelect(file: File) {
+    if (fileName) fileName.textContent = file.name;
+    if (dropZone) dropZone.classList.add('hidden');
+    if (fileInfo) fileInfo.classList.remove('hidden');
+  }
+
+  removeFileBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    if (dropZone) dropZone.classList.remove('hidden');
+    if (fileInfo) fileInfo.classList.add('hidden');
+  });
+
+  // Form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const file = fileInput.files?.[0];
+    
+    if (!file) {
+      showMessage('Please select a PDF file.', 'error');
+      return;
+    }
+
+    // Show processing status
+    processingStatus.classList.remove('hidden');
+    extractionResults.classList.add('hidden');
+    formMessage.classList.add('hidden');
+
+    try {
+      const response = await fetch('/api/extract-articles', {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        displayResults(result.articles);
+        showMessage('Articles extracted successfully!', 'success');
+      } else {
+        showMessage(result.error || 'Failed to extract articles.', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      showMessage('An error occurred while processing the PDF.', 'error');
+    } finally {
+      processingStatus.classList.add('hidden');
+    }
+  });
+
+  function displayResults(articles: any[]) {
+    if (!articlesList) return;
+    articlesList.innerHTML = '';
+    
+    articles.forEach((article, index) => {
+      const articleDiv = document.createElement('div');
+      articleDiv.className = 'bg-white border border-gray-200 rounded-lg p-6';
+      articleDiv.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+          <h4 class="text-lg font-semibold text-brand-navy">Article ${index + 1}</h4>
+          <div class="flex space-x-2">
+            <button class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200" onclick="publishArticle(${index})">
+              Publish
+            </button>
+            <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200" onclick="editArticle(${index})">
+              Edit
+            </button>
+          </div>
+        </div>
+        <h5 class="font-medium text-gray-900 mb-2">${article.title}</h5>
+        <p class="text-sm text-gray-600 mb-3">${article.description}</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.category}</span>
+          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.date}</span>
+          ${article.tags.map((tag: string) => `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${tag}</span>`).join('')}
+        </div>
+        <div class="mt-3 text-xs text-gray-500">
+          ${article.content.length} content blocks • ${article.wordCount} words
+        </div>
+      `;
+      articlesList.appendChild(articleDiv);
+    });
+
+    if (extractionResults) extractionResults.classList.remove('hidden');
+  }
+
+  function showMessage(message: string, type: 'success' | 'error') {
+    if (!formMessage) return;
+    formMessage.className = `mt-6 p-4 rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+    formMessage.textContent = message;
+    formMessage.classList.remove('hidden');
+  }
+
+  // Global functions for article actions
+  (window as any).publishArticle = function(index: number) {
+    // Implementation for publishing article
+    console.log('Publishing article:', index);
+  };
+
+  (window as any).editArticle = function(index: number) {
+    // Implementation for editing article
+    console.log('Editing article:', index);
+  };
+</script>
