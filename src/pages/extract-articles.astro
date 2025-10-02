@@ -477,9 +477,115 @@ import Hero from '../components/Hero.astro';
 
   // Global functions for article actions
   (window as any).editArticle = function(index: number) {
-    // Implementation for editing article
-    console.log('Editing article:', index);
-    showMessage('Edit functionality coming soon!', 'success');
+    const article = allArticles[index];
+    if (!article) return;
+    
+    // Create a modal/popup for editing
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-brand-navy">Edit Article ${index + 1}</h3>
+          <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <form id="editForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Title *</label>
+            <input type="text" id="editTitle" value="${article.title.replace(/"/g, '&quot;')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Description *</label>
+            <textarea id="editDescription" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>${article.description}</textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-brand-navy mb-2">Author *</label>
+              <input type="text" id="editAuthor" value="${article.author}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-brand-navy mb-2">Category *</label>
+              <select id="editCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+                <option value="community" ${article.category === 'community' ? 'selected' : ''}>Community</option>
+                <option value="sports" ${article.category === 'sports' ? 'selected' : ''}>Sports</option>
+                <option value="business" ${article.category === 'business' ? 'selected' : ''}>Business</option>
+                <option value="government" ${article.category === 'government' ? 'selected' : ''}>Government</option>
+                <option value="education" ${article.category === 'education' ? 'selected' : ''}>Education</option>
+                <option value="events" ${article.category === 'events' ? 'selected' : ''}>Events</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Content *</label>
+            <textarea id="editContent" rows="15" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy font-mono text-sm" required>${article.content.map((c: any) => c.text).join('\n\n')}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Edit the article content. Each paragraph will be separated automatically.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Tags (comma-separated)</label>
+            <input type="text" id="editTags" value="${article.tags.join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy">
+          </div>
+          <div class="flex justify-end space-x-3 pt-4 border-t">
+            <button type="button" onclick="closeEditModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-brand-navy text-white rounded-lg hover:bg-brand-gray">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveArticleEdits(index);
+      });
+    }
+  };
+
+  function saveArticleEdits(index: number) {
+    const title = (document.getElementById('editTitle') as HTMLInputElement)?.value;
+    const description = (document.getElementById('editDescription') as HTMLTextAreaElement)?.value;
+    const author = (document.getElementById('editAuthor') as HTMLInputElement)?.value;
+    const category = (document.getElementById('editCategory') as HTMLSelectElement)?.value;
+    const content = (document.getElementById('editContent') as HTMLTextAreaElement)?.value;
+    const tags = (document.getElementById('editTags') as HTMLInputElement)?.value.split(',').map(t => t.trim());
+    
+    // Update the article in memory
+    allArticles[index] = {
+      ...allArticles[index],
+      title,
+      description,
+      author,
+      category,
+      tags,
+      content: content.split('\n\n').filter(p => p.trim()).map(p => ({
+        type: 'paragraph',
+        text: p.trim()
+      })),
+      wordCount: content.split(/\s+/).length
+    };
+    
+    // Close modal and refresh display
+    (window as any).closeEditModal();
+    displayResults(allArticles);
+    showMessage('Article updated successfully!', 'success');
+  }
+
+  (window as any).closeEditModal = function() {
+    const modal = document.querySelector('.fixed.inset-0');
+    if (modal) {
+      modal.remove();
+    }
   };
 
   } // Close the else block
