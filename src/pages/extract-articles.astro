@@ -130,7 +130,17 @@ import Hero from '../components/Hero.astro';
 
         <!-- Results -->
         <div id="extractionResults" class="hidden mt-8">
-          <h3 class="text-xl font-serif font-bold text-brand-navy mb-4">Extracted Articles</h3>
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-serif font-bold text-brand-navy">Extracted Articles</h3>
+            <div class="flex space-x-2">
+              <button id="selectAllBtn" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200">
+                Select All
+              </button>
+              <button id="publishSelectedBtn" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200">
+                Publish Selected (0)
+              </button>
+            </div>
+          </div>
           <div id="articlesList" class="space-y-4">
             <!-- Articles will be populated here -->
           </div>
@@ -175,11 +185,17 @@ import Hero from '../components/Hero.astro';
   const extractionResults = document.getElementById('extractionResults');
   const articlesList = document.getElementById('articlesList');
   const formMessage = document.getElementById('formMessage');
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  const publishSelectedBtn = document.getElementById('publishSelectedBtn');
 
-  if (!fileInput || !dropZone || !fileInfo || !fileName || !removeFileBtn || !form || !processingStatus || !extractionResults || !articlesList || !formMessage) {
+  if (!fileInput || !dropZone || !fileInfo || !fileName || !removeFileBtn || !form || !processingStatus || !extractionResults || !articlesList || !formMessage || !selectAllBtn || !publishSelectedBtn) {
     console.error('Required DOM elements not found');
     return;
   }
+
+  // Article selection state
+  let selectedArticles: Set<number> = new Set();
+  let allArticles: any[] = [];
 
   // Drag and drop functionality
   dropZone.addEventListener('dragover', (e) => {
@@ -267,37 +283,59 @@ import Hero from '../components/Hero.astro';
 
   function displayResults(articles: any[]) {
     if (!articlesList) return;
+    allArticles = articles;
+    selectedArticles.clear();
     articlesList.innerHTML = '';
     
     articles.forEach((article, index) => {
       const articleDiv = document.createElement('div');
       articleDiv.className = 'bg-white border border-gray-200 rounded-lg p-6';
       articleDiv.innerHTML = `
-        <div class="flex justify-between items-start mb-4">
-          <h4 class="text-lg font-semibold text-brand-navy">Article ${index + 1}</h4>
-          <div class="flex space-x-2">
-            <button class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200" onclick="publishArticle(${index})">
-              Publish
-            </button>
-            <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200" onclick="editArticle(${index})">
-              Edit
-            </button>
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 mt-1">
+            <input 
+              type="checkbox" 
+              id="article-${index}" 
+              class="article-checkbox w-4 h-4 text-brand-navy border-gray-300 rounded focus:ring-brand-navy"
+              data-index="${index}"
+            >
           </div>
-        </div>
-        <h5 class="font-medium text-gray-900 mb-2">${article.title}</h5>
-        <p class="text-sm text-gray-600 mb-3">${article.description}</p>
-        <div class="flex flex-wrap gap-2">
-          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.category}</span>
-          <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.date}</span>
-          ${article.tags.map((tag: string) => `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${tag}</span>`).join('')}
-        </div>
-        <div class="mt-3 text-xs text-gray-500">
-          ${article.content.length} content blocks • ${article.wordCount} words
+          <div class="flex-1">
+            <div class="flex justify-between items-start mb-4">
+              <h4 class="text-lg font-semibold text-brand-navy">Article ${index + 1}</h4>
+              <div class="flex space-x-2">
+                <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200" onclick="editArticle(${index})">
+                  Edit
+                </button>
+              </div>
+            </div>
+            <h5 class="font-medium text-gray-900 mb-2">${article.title}</h5>
+            <p class="text-sm text-gray-600 mb-3">${article.description}</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.category}</span>
+              <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.date}</span>
+              ${article.tags.map((tag: string) => `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${tag}</span>`).join('')}
+            </div>
+            <div class="mt-3 text-xs text-gray-500">
+              ${article.content.length} content blocks • ${article.wordCount} words
+            </div>
+          </div>
         </div>
       `;
       articlesList.appendChild(articleDiv);
     });
 
+    // Add event listeners to checkboxes
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', handleArticleSelection);
+    });
+
+    // Add event listeners to buttons
+    if (selectAllBtn) selectAllBtn.addEventListener('click', toggleSelectAll);
+    if (publishSelectedBtn) publishSelectedBtn.addEventListener('click', publishSelected);
+
+    updateSelectionUI();
     if (extractionResults) extractionResults.classList.remove('hidden');
   }
 
@@ -308,14 +346,93 @@ import Hero from '../components/Hero.astro';
     formMessage.classList.remove('hidden');
   }
 
-  // Global functions for article actions
-  (window as any).publishArticle = function(index: number) {
-    // Implementation for publishing article
-    console.log('Publishing article:', index);
-  };
+  // Article selection functions
+  function handleArticleSelection(event: Event) {
+    const checkbox = event.target as HTMLInputElement;
+    const index = parseInt(checkbox.dataset.index || '0');
+    
+    if (checkbox.checked) {
+      selectedArticles.add(index);
+    } else {
+      selectedArticles.delete(index);
+    }
+    
+    updateSelectionUI();
+  }
 
+  function toggleSelectAll() {
+    const allSelected = selectedArticles.size === allArticles.length;
+    
+    if (allSelected) {
+      // Deselect all
+      selectedArticles.clear();
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+    } else {
+      // Select all
+      selectedArticles.clear();
+      allArticles.forEach((_, index) => selectedArticles.add(index));
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = true);
+    }
+    
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    if (!selectAllBtn || !publishSelectedBtn) return;
+    
+    const selectedCount = selectedArticles.size;
+    const totalCount = allArticles.length;
+    
+    // Update select all button text
+    if (selectedCount === totalCount) {
+      selectAllBtn.textContent = 'Deselect All';
+    } else {
+      selectAllBtn.textContent = 'Select All';
+    }
+    
+    // Update publish selected button
+    publishSelectedBtn.textContent = `Publish Selected (${selectedCount})`;
+    (publishSelectedBtn as HTMLButtonElement).disabled = selectedCount === 0;
+    
+    // Update button styling based on selection
+    if (selectedCount === 0) {
+      publishSelectedBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      publishSelectedBtn.classList.remove('hover:bg-green-200');
+    } else {
+      publishSelectedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      publishSelectedBtn.classList.add('hover:bg-green-200');
+    }
+  }
+
+  function publishSelected() {
+    if (selectedArticles.size === 0) {
+      showMessage('Please select at least one article to publish.', 'error');
+      return;
+    }
+
+    const selectedArticlesList = Array.from(selectedArticles).map(index => allArticles[index]);
+    
+    // Show confirmation
+    const confirmMessage = `Are you sure you want to publish ${selectedArticles.size} article(s)?`;
+    if (confirm(confirmMessage)) {
+      // Here you would implement the actual publishing logic
+      console.log('Publishing articles:', selectedArticlesList);
+      showMessage(`Successfully published ${selectedArticles.size} article(s)!`, 'success');
+      
+      // Clear selection after publishing
+      selectedArticles.clear();
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+      updateSelectionUI();
+    }
+  }
+
+  // Global functions for article actions
   (window as any).editArticle = function(index: number) {
     // Implementation for editing article
     console.log('Editing article:', index);
+    showMessage('Edit functionality coming soon!', 'success');
   };
 </script>
