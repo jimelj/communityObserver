@@ -4,7 +4,24 @@ import { join } from 'path';
 export async function POST({ request }) {
   try {
     console.log('API: Received POST request to extract-articles');
-    const formData = await request.formData();
+    console.log('API: Content-Type:', request.headers.get('content-type'));
+    
+    let formData;
+    try {
+      formData = await request.formData();
+      console.log('API: FormData parsed successfully');
+    } catch (parseError) {
+      console.error('API: Error parsing FormData:', parseError);
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Failed to parse form data. Please try again.',
+        details: parseError.message
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
     const pdfFile = formData.get('pdfFile');
     
     console.log('API: PDF file received:', pdfFile ? {

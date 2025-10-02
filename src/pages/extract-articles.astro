@@ -294,6 +294,12 @@ import Hero from '../components/Hero.astro';
 
     try {
       console.log('Submitting form to API...');
+      console.log('FormData contents:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
+      
+      // Don't set Content-Type header - let browser set it automatically with boundary
       const response = await fetch('/api/extract-articles', {
         method: 'POST',
         body: formData
