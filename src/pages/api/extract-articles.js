@@ -219,18 +219,4 @@ function extractArticlesFromText(text) {
     };
     
     return [pdfTextArticle, ...mockArticles];
-  }
-
-  } catch (error) {
-    console.error('PDF extraction error:', error);
-    console.error('Error stack:', error.stack);
-    return new Response(JSON.stringify({
-      success: false,
-      error: 'An error occurred while processing the PDF.',
-      details: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
 }
