@@ -58,9 +58,9 @@ export async function POST({ request }) {
     
     console.log('API: PDF file validated successfully');
 
-    // Convert the PDF file to a buffer for parsing
+    // Convert the PDF file to a Uint8Array for pdfjs-dist
     const arrayBuffer = await pdfFile.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const uint8Array = new Uint8Array(arrayBuffer);
     
     console.log('API: Parsing PDF with pdfjs-dist...');
     
@@ -68,7 +68,7 @@ export async function POST({ request }) {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
     
     // Load the PDF document
-    const loadingTask = pdfjsLib.getDocument({ data: buffer });
+    const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
     const pdfDocument = await loadingTask.promise;
     
     console.log('API: PDF loaded successfully');
