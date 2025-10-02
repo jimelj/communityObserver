@@ -190,8 +190,7 @@ import Hero from '../components/Hero.astro';
 
   if (!fileInput || !dropZone || !fileInfo || !fileName || !removeFileBtn || !form || !processingStatus || !extractionResults || !articlesList || !formMessage || !selectAllBtn || !publishSelectedBtn) {
     console.error('Required DOM elements not found');
-    return;
-  }
+  } else {
 
   // Article selection state
   let selectedArticles: Set<number> = new Set();
@@ -484,4 +483,6 @@ import Hero from '../components/Hero.astro';
     console.log('Editing article:', index);
     showMessage('Edit functionality coming soon!', 'success');
   };
+
+  } // Close the else block
 </script>
