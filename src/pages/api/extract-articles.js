@@ -1,5 +1,5 @@
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
+// Mark this endpoint as server-rendered (not pre-rendered)
+export const prerender = false;
 
 export async function POST({ request }) {
   try {

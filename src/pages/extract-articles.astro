@@ -300,8 +300,7 @@ import Hero from '../components/Hero.astro';
       }
       
       // Don't set Content-Type header - let browser set it automatically with boundary
-      // Use Cloudflare Function endpoint instead of Astro API route
-      const response = await fetch('/extractArticles', {
+      const response = await fetch('/api/extract-articles', {
         method: 'POST',
         body: formData
       });
