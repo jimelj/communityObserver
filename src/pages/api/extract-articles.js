@@ -1,3 +1,5 @@
+import pdf from 'pdf-parse';
+
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
 
@@ -57,9 +59,58 @@ export async function POST({ request }) {
     
     console.log('API: PDF file validated successfully');
 
-    // For now, we'll simulate the extraction process
-    // In a real implementation, you'd use a PDF parsing library like pdf-parse
-    const mockArticles = [
+    // Convert the PDF file to a buffer for parsing
+    const arrayBuffer = await pdfFile.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    console.log('API: Parsing PDF...');
+    const pdfData = await pdf(buffer);
+    
+    console.log('API: PDF parsed successfully');
+    console.log('API: Pages:', pdfData.numpages);
+    console.log('API: Text length:', pdfData.text.length);
+    console.log('API: First 500 characters:', pdfData.text.substring(0, 500));
+    
+    // Split text into potential articles (simple approach for now)
+    // We'll look for article titles or sections
+    const extractedArticles = extractArticlesFromText(pdfData.text);
+    
+    console.log('API: Extracted', extractedArticles.length, 'articles from PDF');
+    
+    return new Response(JSON.stringify({
+      success: true,
+      articles: extractedArticles,
+      message: `Successfully extracted ${extractedArticles.length} articles from the PDF.`,
+      pdfInfo: {
+        pages: pdfData.numpages,
+        textLength: pdfData.text.length
+      }
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+  } catch (error) {
+    console.error('PDF extraction error:', error);
+    console.error('Error stack:', error.stack);
+    return new Response(JSON.stringify({
+      success: false,
+      error: 'An error occurred while processing the PDF.',
+      details: error.message
+    }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// Helper function to extract articles from PDF text
+function extractArticlesFromText(text) {
+  const articles = [];
+  
+  // For demonstration, let's create a simple extraction
+  // This will need to be customized based on your newspaper format
+  const mockArticles = [
       {
         id: 'extracted-article-1',
         title: 'Local Business Expansion Brings New Jobs',
@@ -140,27 +191,35 @@ export async function POST({ request }) {
       }
     ];
 
-    // In a real implementation, you would:
-    // 1. Parse the PDF using a library like pdf-parse
-    // 2. Use AI/ML to identify article boundaries
-    // 3. Extract text content and structure
-    // 4. Generate metadata (titles, categories, tags)
-    // 5. Save articles to the articles directory
-
-    console.log('API: Returning', mockArticles.length, 'mock articles');
-
-    const response = {
-      success: true,
-      articles: mockArticles,
-      message: 'Successfully extracted 3 articles from the PDF.'
+    // Add the actual PDF text as the first article for now
+    // You can manually review and split it into proper articles
+    const pdfTextArticle = {
+      id: 'pdf-extracted-text',
+      title: 'Extracted PDF Content (needs formatting)',
+      description: 'Raw text extracted from the PDF. Please review and format into proper articles.',
+      date: new Date().toISOString().split('T')[0],
+      author: 'PDF Extraction',
+      category: 'extracted',
+      tags: ['pdf', 'extracted', 'raw'],
+      image: '/images/placeholder-council.jpg',
+      featured: false,
+      content: [
+        {
+          type: 'paragraph',
+          class: 'lead',
+          text: 'This is the raw text extracted from your PDF. You can use this to manually create articles or we can implement AI-based article detection.'
+        },
+        {
+          type: 'paragraph',
+          text: text.substring(0, 2000) + (text.length > 2000 ? '...' : '')
+        }
+      ],
+      wordCount: text.split(/\s+/).length,
+      fullText: text // Include full text for reference
     };
-
-    console.log('API: Response prepared:', { success: response.success, articleCount: response.articles.length });
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    
+    return [pdfTextArticle, ...mockArticles];
+  }
 
   } catch (error) {
     console.error('PDF extraction error:', error);
