@@ -3,10 +3,18 @@ import { join } from 'path';
 
 export async function POST({ request }) {
   try {
+    console.log('API: Received POST request to extract-articles');
     const formData = await request.formData();
     const pdfFile = formData.get('pdfFile');
     
-    if (!pdfFile || pdfFile.type !== 'application/pdf') {
+    console.log('API: PDF file received:', pdfFile ? {
+      name: pdfFile.name,
+      type: pdfFile.type,
+      size: pdfFile.size
+    } : 'No file');
+    
+    if (!pdfFile) {
+      console.log('API: No file provided');
       return new Response(JSON.stringify({
         success: false,
         error: 'Please upload a valid PDF file.'
@@ -15,6 +23,22 @@ export async function POST({ request }) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Check if it's a PDF by type or name
+    const isPDF = pdfFile.type === 'application/pdf' || pdfFile.name.toLowerCase().endsWith('.pdf');
+    
+    if (!isPDF) {
+      console.log('API: File is not a PDF');
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'Please upload a valid PDF file.'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    console.log('API: PDF file validated successfully');
 
     // For now, we'll simulate the extraction process
     // In a real implementation, you'd use a PDF parsing library like pdf-parse
@@ -106,20 +130,28 @@ export async function POST({ request }) {
     // 4. Generate metadata (titles, categories, tags)
     // 5. Save articles to the articles directory
 
-    return new Response(JSON.stringify({
+    console.log('API: Returning', mockArticles.length, 'mock articles');
+
+    const response = {
       success: true,
       articles: mockArticles,
       message: 'Successfully extracted 3 articles from the PDF.'
-    }), {
+    };
+
+    console.log('API: Response prepared:', { success: response.success, articleCount: response.articles.length });
+
+    return new Response(JSON.stringify(response), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
     console.error('PDF extraction error:', error);
+    console.error('Error stack:', error.stack);
     return new Response(JSON.stringify({
       success: false,
-      error: 'An error occurred while processing the PDF.'
+      error: 'An error occurred while processing the PDF.',
+      details: error.message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }

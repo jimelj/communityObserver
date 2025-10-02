@@ -293,22 +293,29 @@ import Hero from '../components/Hero.astro';
     formMessage.classList.add('hidden');
 
     try {
+      console.log('Submitting form to API...');
       const response = await fetch('/api/extract-articles', {
         method: 'POST',
         body: formData
       });
 
+      console.log('Response status:', response.status, response.statusText);
+      
       const result = await response.json();
+      console.log('Response data:', result);
 
       if (result.success) {
+        console.log('Success! Articles:', result.articles);
         displayResults(result.articles);
         showMessage('Articles extracted successfully!', 'success');
       } else {
+        console.error('API returned error:', result.error);
         showMessage(result.error || 'Failed to extract articles.', 'error');
       }
     } catch (error) {
-      console.error('Error:', error);
-      showMessage('An error occurred while processing the PDF.', 'error');
+      console.error('Fetch error:', error);
+      console.error('Error details:', error.message, error.stack);
+      showMessage('An error occurred while processing the PDF: ' + error.message, 'error');
     } finally {
       processingStatus.classList.add('hidden');
     }
