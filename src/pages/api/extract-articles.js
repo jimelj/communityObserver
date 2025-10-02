@@ -62,20 +62,34 @@ export async function POST({ request }) {
     const arrayBuffer = await pdfFile.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     
-    console.log('API: Parsing PDF...');
+    console.log('API: Parsing PDF with pdfjs-dist...');
     
-    // Dynamic import of pdf-parse to handle ESM issues
-    const pdfParse = (await import('pdf-parse')).default;
-    const pdfData = await pdfParse(buffer);
+    // Use pdfjs-dist which is more reliable with ESM
+    const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
     
-    console.log('API: PDF parsed successfully');
-    console.log('API: Pages:', pdfData.numpages);
-    console.log('API: Text length:', pdfData.text.length);
-    console.log('API: First 500 characters:', pdfData.text.substring(0, 500));
+    // Load the PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: buffer });
+    const pdfDocument = await loadingTask.promise;
+    
+    console.log('API: PDF loaded successfully');
+    console.log('API: Pages:', pdfDocument.numPages);
+    
+    // Extract text from all pages
+    let fullText = '';
+    for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
+      const page = await pdfDocument.getPage(pageNum);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item) => item.str).join(' ');
+      fullText += pageText + '\n\n';
+    }
+    
+    console.log('API: Text extracted successfully');
+    console.log('API: Text length:', fullText.length);
+    console.log('API: First 500 characters:', fullText.substring(0, 500));
     
     // Split text into potential articles (simple approach for now)
     // We'll look for article titles or sections
-    const extractedArticles = extractArticlesFromText(pdfData.text);
+    const extractedArticles = extractArticlesFromText(fullText);
     
     console.log('API: Extracted', extractedArticles.length, 'articles from PDF');
     
@@ -84,8 +98,8 @@ export async function POST({ request }) {
       articles: extractedArticles,
       message: `Successfully extracted ${extractedArticles.length} articles from the PDF.`,
       pdfInfo: {
-        pages: pdfData.numpages,
-        textLength: pdfData.text.length
+        pages: pdfDocument.numPages,
+        textLength: fullText.length
       }
     }), {
       status: 200,
