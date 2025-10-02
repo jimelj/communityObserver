@@ -51,10 +51,10 @@ import Hero from '../components/Hero.astro';
         <form id="pdfUploadForm" class="space-y-6" enctype="multipart/form-data">
           <!-- PDF Upload -->
           <div>
-            <label for="pdfFile" class="block text-sm font-medium text-brand-navy mb-2">
+            <label class="block text-sm font-medium text-brand-navy mb-2">
               Select PDF File *
             </label>
-            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-navy transition-colors">
+            <div id="dropZoneContainer" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-navy transition-colors cursor-pointer">
               <input 
                 type="file" 
                 id="pdfFile" 
@@ -63,13 +63,13 @@ import Hero from '../components/Hero.astro';
                 required
                 class="hidden"
               >
-              <div id="dropZone" class="cursor-pointer">
-                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <label for="pdfFile" id="dropZone" class="cursor-pointer block">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                 </svg>
-                <p class="text-lg font-medium text-brand-navy mb-2">Click to upload or drag and drop</p>
-                <p class="text-sm text-brand-gray">PDF files only, max 50MB</p>
-              </div>
+                <p class="text-lg font-medium text-brand-navy mb-2 pointer-events-none">Click to upload or drag and drop</p>
+                <p class="text-sm text-brand-gray pointer-events-none">PDF files only, max 50MB</p>
+              </label>
               <div id="fileInfo" class="hidden mt-4">
                 <div class="flex items-center justify-center space-x-2">
                   <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,68 +196,53 @@ import Hero from '../components/Hero.astro';
   let selectedArticles: Set<number> = new Set();
   let allArticles: any[] = [];
 
-  // Drag and drop functionality
-  dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.add('border-brand-navy', 'bg-brand-light/10');
-  });
 
-  dropZone.addEventListener('dragenter', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.add('border-brand-navy', 'bg-brand-light/10');
-  });
-
-  dropZone.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // Only remove styling if we're leaving the drop zone entirely
-    if (!dropZone.contains(e.relatedTarget as Node)) {
-      dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
-    }
-  });
-
-  dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dropZone.classList.remove('border-brand-navy', 'bg-brand-light/10');
-    
-    console.log('Drop event triggered');
-    console.log('Files:', e.dataTransfer?.files);
-    
-    if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0];
-      console.log('Dropped file:', file.name, file.type);
-      
-      if (file.type === 'application/pdf') {
-        // Create a new FileList-like object
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        fileInput.files = dt.files;
-        handleFileSelect(file);
-      } else {
-        showMessage('Please upload a PDF file only.', 'error');
-      }
-    }
-  });
-
-  // Click to upload
-  dropZone.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Drop zone clicked');
-    fileInput.click();
-  });
-
-  // Also add click handler to the entire drop zone area
-  const dropZoneContainer = document.querySelector('.border-2.border-dashed');
+  // The label for="pdfFile" automatically handles clicks to open the file dialog
+  // We just need to handle drag and drop events on the container
+  const dropZoneContainer = document.getElementById('dropZoneContainer');
   if (dropZoneContainer) {
-    dropZoneContainer.addEventListener('click', (e) => {
+    // Drag and drop on the container
+    dropZoneContainer.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Drop zone container clicked');
-      fileInput.click();
+      dropZoneContainer.classList.add('border-brand-navy', 'bg-brand-light/10');
+    });
+
+    dropZoneContainer.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneContainer.classList.add('border-brand-navy', 'bg-brand-light/10');
+    });
+
+    dropZoneContainer.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dropZoneContainer.contains(e.relatedTarget as Node)) {
+        dropZoneContainer.classList.remove('border-brand-navy', 'bg-brand-light/10');
+      }
+    });
+
+    dropZoneContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneContainer.classList.remove('border-brand-navy', 'bg-brand-light/10');
+      
+      console.log('Drop event triggered');
+      console.log('Files:', e.dataTransfer?.files);
+      
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        console.log('Dropped file:', file.name, file.type);
+        
+        if (file.type === 'application/pdf') {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInput.files = dt.files;
+          handleFileSelect(file);
+        } else {
+          showMessage('Please upload a PDF file only.', 'error');
+        }
+      }
     });
   }
 
