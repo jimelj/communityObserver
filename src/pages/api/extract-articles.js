@@ -131,16 +131,33 @@ function extractArticlesFromText(text) {
   const DEFAULT_AUTHOR = 'Janice Seiferling';
 
   // NEWSPAPER HEADLINE EXTRACTION
-  // Look for bold headlines (capitalized phrases that are article titles)
+  // Split text into lines and look for headline patterns
+  const lines = text.split(/\n+/);
+  const potentialHeadlines = [];
   
-  // 1. Find potential headlines - lines with mostly capitals or title case
-  // This matches the bold headlines in the newspaper
-  const headlinePattern = /([A-Z][A-Za-z\s,'':&?!-]{20,120})(?=\s*(?:By|$|\n))/g;
-  const headlineMatches = [...text.matchAll(headlinePattern)];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines
+    if (line.length < 20) continue;
+    
+    // Headlines are typically:
+    // - Start with a capital letter
+    // - 20-120 characters
+    // - Followed by byline or article content
+    if (line.match(/^[A-Z]/) && line.length >= 20 && line.length <= 120) {
+      potentialHeadlines.push({
+        text: line,
+        index: text.indexOf(line)
+      });
+    }
+  }
+  
+  console.log(`API: Found ${potentialHeadlines.length} potential headlines from line analysis`);
 
   // Filter headlines to exclude navigation elements
-  const filteredHeadlines = headlineMatches.filter(match => {
-    const headline = match[1].trim();
+  const filteredHeadlines = potentialHeadlines.filter(item => {
+    const headline = item.text;
     
     // Exclude navigation patterns - these are NOT article titles
     const navigationPatterns = [
@@ -168,15 +185,15 @@ function extractArticlesFromText(text) {
     return headline.length >= 20 && headline.length <= 120;
   });
 
-  console.log(`API: Found ${headlineMatches.length} potential headlines, ${filteredHeadlines.length} after filtering`);
+  console.log(`API: Found ${potentialHeadlines.length} potential headlines, ${filteredHeadlines.length} after filtering`);
   if (filteredHeadlines.length > 0) {
-    console.log('API: Sample headlines:', filteredHeadlines.slice(0, 5).map(m => m[1].trim()));
+    console.log('API: Sample headlines:', filteredHeadlines.slice(0, 5).map(m => m.text));
   }
 
   // Extract articles for each headline
   for (let i = 0; i < filteredHeadlines.length && articles.length < 15; i++) {
-    const headlineMatch = filteredHeadlines[i];
-    const headline = headlineMatch[1].trim();
+    const headlineItem = filteredHeadlines[i];
+    const headline = headlineItem.text;
 
     // Skip if already extracted
     if (articles.some(article => article.title === headline)) {
@@ -184,15 +201,15 @@ function extractArticlesFromText(text) {
     }
 
     // Look for author byline after the headline
-    const afterHeadline = text.substring(headlineMatch.index + headlineMatch[0].length, headlineMatch.index + headlineMatch[0].length + 200);
+    const afterHeadline = text.substring(headlineItem.index + headline.length, headlineItem.index + headline.length + 200);
     const bylineMatch = afterHeadline.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)+)/);
     
     const author = bylineMatch ? bylineMatch[1] : DEFAULT_AUTHOR;
 
     // Extract content - from end of headline (and optional byline) to next headline
-    const contentStart = headlineMatch.index + headlineMatch[0].length + (bylineMatch ? bylineMatch[0].length : 0);
+    const contentStart = headlineItem.index + headline.length + (bylineMatch ? bylineMatch[0].length : 0);
     const nextHeadline = filteredHeadlines[i + 1];
-    const contentEnd = nextHeadline ? nextHeadline.index : Math.min(text.length, headlineMatch.index + 5000);
+    const contentEnd = nextHeadline ? nextHeadline.index : Math.min(text.length, headlineItem.index + 5000);
     
     let articleContent = text.substring(contentStart, contentEnd).trim();
     
