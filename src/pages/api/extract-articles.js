@@ -132,29 +132,43 @@ function extractArticlesFromText(text) {
   console.log('API: Total non-empty lines:', lines.length);
   console.log('API: First 30 lines:', lines.slice(0, 30));
 
-  // Find all "By [Author]" patterns (more flexible)
+  // Find all "By [Author]" patterns (multiple approaches)
   const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
   const matches = [...text.matchAll(bylinePattern)];
 
-  // If that doesn't work, try a broader search for author patterns
+  // Try broader patterns if standard bylines not found
   if (matches.length === 0) {
-    console.log('API: No standard bylines found, trying broader pattern');
-    const broadPattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
-    const broadMatches = [...text.matchAll(broadPattern)];
-    // Filter to find likely author names (2-3 words, all caps first letters)
-    const authorMatches = broadMatches.filter(match => {
+    console.log('API: No standard bylines found, trying broader patterns');
+
+    // Pattern 1: "By FirstName LastName"
+    const pattern1 = /By\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/g;
+    const matches1 = [...text.matchAll(pattern1)];
+
+    // Pattern 2: Just capitalized names that could be authors
+    const pattern2 = /([A-Z][a-z]+\s+[A-Z][a-z]+)/g;
+    const matches2 = [...text.matchAll(pattern2)];
+
+    // Filter pattern 2 to find likely author names (not preceded by common words)
+    const filteredMatches2 = matches2.filter(match => {
       const name = match[1];
-      const words = name.split(/\s+/);
-      return words.length >= 2 && words.length <= 3 &&
-             words.every(word => /^[A-Z][a-z]+$/.test(word));
+      const beforeText = text.substring(0, match.index).slice(-50);
+      // Don't include if preceded by common non-author words
+      return !beforeText.match(/(See|Page|Photo|The|And|Or|In|At|On|For|With|From)\s*$/);
     });
 
-    console.log('API: Found', authorMatches.length, 'potential author names');
-    matches.push(...authorMatches.map(match => ({
-      index: match.index,
-      0: match[0],
-      1: match[1]
-    })));
+    console.log('API: Pattern 1 found:', matches1.length, 'Pattern 2 found:', filteredMatches2.length);
+
+    // Use pattern 1 if available, otherwise pattern 2
+    if (matches1.length > 0) {
+      matches.push(...matches1);
+    } else if (filteredMatches2.length > 0) {
+      // Convert pattern 2 matches to the expected format
+      matches.push(...filteredMatches2.map(match => ({
+        index: match.index,
+        0: match[0],
+        1: match[1]
+      })));
+    }
   }
 
   console.log('API: Found', matches.length, 'potential bylines');
