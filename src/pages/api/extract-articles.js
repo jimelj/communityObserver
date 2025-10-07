@@ -123,186 +123,102 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
-  console.log('API: First 1500 characters of PDF text:');
-  console.log(text.substring(0, 1500));
+  console.log('API: First 2000 characters of PDF text:');
+  console.log(text.substring(0, 2000));
   console.log('--- END SAMPLE ---');
 
   const articles = [];
+  const DEFAULT_AUTHOR = 'Janice Seiferling';
 
-  // GENERIC NEWSPAPER PATTERN DETECTION
-  // Works for any newspaper by looking for common patterns
+  // NEWSPAPER HEADLINE EXTRACTION
+  // Look for bold headlines (capitalized phrases that are article titles)
+  
+  // 1. Find potential headlines - lines with mostly capitals or title case
+  // This matches the bold headlines in the newspaper
+  const headlinePattern = /([A-Z][A-Za-z\s,'':&?!-]{20,120})(?=\s*(?:By|$|\n))/g;
+  const headlineMatches = [...text.matchAll(headlinePattern)];
 
-  // 1. Look for author bylines (most reliable pattern)
-  // Match "By Author Name" at start of line or after whitespace
-  // Must be followed by a full name (at least 2 parts, each 3+ chars)
-  const bylinePattern = /(?:^|\n)\s*(?:By|Written by)\s+([A-Z][a-z]{2,}\s+(?:[A-Z]\.\s+)?[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})?)/gm;
-  const bylineMatches = [...text.matchAll(bylinePattern)];
-
-  console.log('API: Found', bylineMatches.length, 'author bylines');
-  if (bylineMatches.length > 0) {
-    console.log('API: Sample bylines:', bylineMatches.slice(0, 5).map(m => m[0].trim()));
-  }
-
-  // Extract articles around bylines first (most reliable)
-  for (let i = 0; i < bylineMatches.length && articles.length < 8; i++) {
-    const bylineMatch = bylineMatches[i];
-    const author = bylineMatch[1];
-
-    // Get text before byline to find title
-    // Look for the last meaningful line before the byline (likely the headline)
-    const textBeforeByline = text.substring(Math.max(0, bylineMatch.index - 500), bylineMatch.index);
-    const lines = textBeforeByline.split(/\n+/).filter(line => {
-      const trimmed = line.trim();
-      // Skip navigation, dates, short lines
-      return trimmed.length >= 15 && 
-             trimmed.length <= 150 &&
-             !trimmed.match(/^(See|Page|Photo|VOL|September|October|November|December|\d+)/i);
-    });
-
-    let title = null;
-    if (lines.length > 0) {
-      // Get the last valid line before the byline
-      title = lines[lines.length - 1].trim();
-      // Clean up extra spaces
-      title = title.replace(/\s+/g, ' ');
-    }
-
-    if (!title || title.length < 15) {
-      title = `Article by ${author}`;
-    }
-
-    // Extract content after byline until next byline or major section break
-    const contentStart = bylineMatch.index + bylineMatch[0].length;
-    const nextByline = bylineMatches[i + 1];
-    const contentEnd = nextByline ? nextByline.index : text.length;
-    const articleContent = text.substring(contentStart, contentEnd).trim();
-
-    // Clean up content (remove any remaining bylines)
-    const cleanContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
-
-    if (cleanContent.length > 200) {
-      console.log(`API: ✓ Article #${articles.length + 1}: "${title}" by ${author} (${cleanContent.length} chars)`);
-      articles.push(createArticleObject({
-        title: title,
-        author: author,
-        content: [cleanContent]
-      }, articles.length));
-    } else {
-      console.log(`API: ✗ Skipped short article by ${author} (${cleanContent.length} chars)`);
-    }
-  }
-
-  // 2. Look for capitalized titles (newspaper headlines)
-  // Match lines that start with capital letters and contain mostly title case
-  const titlePattern = /([A-Z][A-Za-z\s,':&-]{14,150}?)(?=[\n\r]|By\s|$)/g;
-  const titleMatches = [...text.matchAll(titlePattern)];
-
-  // Filter out navigation, dates, and common non-article phrases
-  const filteredTitles = titleMatches.filter(match => {
-    const title = match[1].trim();
+  // Filter headlines to exclude navigation elements
+  const filteredHeadlines = headlineMatches.filter(match => {
+    const headline = match[1].trim();
     
-    // Exclude common non-article patterns
-    const excludePatterns = [
-      /^(Find|Network|Scat|See Page|Page|Photo|VOL|Email|Phone|Address|Website)/i,
-      /^(January|February|March|April|May|June|July|August|September|October|November|December)/i,
-      /^\d+$/,  // Just numbers
-      /^www\./,  // URLs
+    // Exclude navigation patterns - these are NOT article titles
+    const navigationPatterns = [
+      /^Find things to do/i,
+      /^Network & Learn/i,
+      /^Scat singing/i,
+      /^See Page/i,
+      /^— See Page/i,
+      /^\d+ — /,  // Page numbers
+      /^VOL\./i,
+      /^Photo (by|credit|courtesy)/i,
       /Community Observer/i,  // Newspaper name
-      /^\s*$/  // Empty or whitespace
+      /^(January|February|March|April|May|June|July|August|September|October|November|December) \d+, \d{4}/i,  // Dates
     ];
     
-    // Check if title matches any exclude pattern
-    for (const pattern of excludePatterns) {
-      if (pattern.test(title)) {
+    // Check if headline matches any navigation pattern
+    for (const pattern of navigationPatterns) {
+      if (pattern.test(headline)) {
+        console.log(`API: ✗ Filtered out navigation: "${headline}"`);
         return false;
       }
     }
     
-    // Must be reasonable length
-    return title.length >= 15 && title.length <= 150;
+    // Must be reasonable length for a headline
+    return headline.length >= 20 && headline.length <= 120;
   });
 
-  console.log('API: Found', filteredTitles.length, 'potential article titles');
-  if (filteredTitles.length > 0) {
-    console.log('API: Sample titles:', filteredTitles.slice(0, 5).map(m => m[1].trim()));
+  console.log(`API: Found ${headlineMatches.length} potential headlines, ${filteredHeadlines.length} after filtering`);
+  if (filteredHeadlines.length > 0) {
+    console.log('API: Sample headlines:', filteredHeadlines.slice(0, 5).map(m => m[1].trim()));
   }
 
-  // Extract articles around standalone titles
-  for (let i = 0; i < filteredTitles.length && articles.length < 12; i++) {
-    const titleMatch = filteredTitles[i];
-    const title = titleMatch[1].trim();
+  // Extract articles for each headline
+  for (let i = 0; i < filteredHeadlines.length && articles.length < 15; i++) {
+    const headlineMatch = filteredHeadlines[i];
+    const headline = headlineMatch[1].trim();
 
-    // Skip if already extracted as part of byline article
-    if (articles.some(article => article.title === title)) {
+    // Skip if already extracted
+    if (articles.some(article => article.title === headline)) {
       continue;
     }
 
-    // Extract content after title
-    const contentStart = titleMatch.index + titleMatch[0].length;
-    const nextTitle = filteredTitles[i + 1];
-    const contentEnd = nextTitle ? nextTitle.index : text.length;
-    const articleContent = text.substring(contentStart, contentEnd).trim();
+    // Look for author byline after the headline
+    const afterHeadline = text.substring(headlineMatch.index + headlineMatch[0].length, headlineMatch.index + headlineMatch[0].length + 200);
+    const bylineMatch = afterHeadline.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)+)/);
+    
+    const author = bylineMatch ? bylineMatch[1] : DEFAULT_AUTHOR;
 
-    if (articleContent.length > 200) {
-      console.log(`API: ✓ Article #${articles.length + 1}: "${title}" (${articleContent.length} chars)`);
+    // Extract content - from end of headline (and optional byline) to next headline
+    const contentStart = headlineMatch.index + headlineMatch[0].length + (bylineMatch ? bylineMatch[0].length : 0);
+    const nextHeadline = filteredHeadlines[i + 1];
+    const contentEnd = nextHeadline ? nextHeadline.index : Math.min(text.length, headlineMatch.index + 5000);
+    
+    let articleContent = text.substring(contentStart, contentEnd).trim();
+    
+    // Clean up content
+    articleContent = articleContent
+      .replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '')  // Remove remaining bylines
+      .replace(/\n{3,}/g, '\n\n')  // Normalize line breaks
+      .trim();
+
+    if (articleContent.length > 150) {
+      console.log(`API: ✓ Article #${articles.length + 1}: "${headline}" by ${author} (${articleContent.length} chars)`);
       articles.push(createArticleObject({
-        title: title,
-        author: 'Newspaper Staff',
+        title: headline,
+        author: author,
         content: [articleContent]
       }, articles.length));
+    } else {
+      console.log(`API: ✗ Skipped short content for "${headline}" (${articleContent.length} chars)`);
     }
   }
 
-  // 3. Look for section headers (like "Out & About", "Business Briefs")
-  const sectionPatterns = [
-    /Out & About/g,
-    /Business Briefs/g,
-    /Sports Briefs/g,
-    /Local News/g,
-    /Community News/g,
-    /Features/g,
-    /Opinion/g,
-    /Editorial/g
-  ];
+  console.log(`API: Extracted ${articles.length} articles total`);
 
-  for (const pattern of sectionPatterns) {
-    if (articles.length >= 15) break; // Limit total articles
-
-    const matches = [...text.matchAll(pattern)];
-    console.log(`API: Found`, matches.length, `matches for ${pattern.source}`);
-
-    for (const match of matches) {
-      if (articles.length >= 15) break;
-
-      const sectionTitle = match[0];
-      const sectionIndex = match.index;
-      const sectionContent = text.substring(sectionIndex + sectionTitle.length).trim();
-
-      // Find where this section ends (look for next section or end)
-      const nextSectionBreak = sectionContent.indexOf('By ') ||
-                              sectionContent.indexOf(sectionTitle) ||
-                              sectionContent.length;
-
-      const sectionArticleContent = nextSectionBreak > 0 ?
-        sectionContent.substring(0, nextSectionBreak).trim() :
-        sectionContent.substring(0, Math.min(sectionContent.length, 1000)).trim();
-
-      if (sectionArticleContent.length > 200) {
-        console.log(`API: ✓ Article #${articles.length + 1}: "${sectionTitle}" (${sectionArticleContent.length} chars)`);
-        articles.push(createArticleObject({
-          title: sectionTitle,
-          author: 'Newspaper Staff',
-          content: [sectionArticleContent]
-        }, articles.length));
-      }
-    }
-  }
-
-  console.log('API: Found', articles.length, 'articles total');
-
-  // If we didn't find enough articles, fall back to chunking
-  if (articles.length < 3) {
-    console.log('API: Not enough articles found, using fallback chunking');
+  // Fallback if no articles found
+  if (articles.length === 0) {
+    console.log('API: No articles found, using fallback chunking');
     return createArticleChunks(text);
   }
 
@@ -324,15 +240,19 @@ function createArticleObject(articleData, index) {
   
   // Try to detect category from content
   const contentLower = fullText.toLowerCase();
+  const titleLower = articleData.title.toLowerCase();
   let category = 'community';
-  if (contentLower.includes('sport') || contentLower.includes('game') || contentLower.includes('team')) {
+  
+  if (contentLower.includes('sport') || contentLower.includes('game') || contentLower.includes('team') || contentLower.includes('basketball') || contentLower.includes('hoops')) {
     category = 'sports';
-  } else if (contentLower.includes('business') || contentLower.includes('company') || contentLower.includes('economic')) {
+  } else if (contentLower.includes('business') || titleLower.includes('business') || contentLower.includes('company') || contentLower.includes('economic')) {
     category = 'business';
   } else if (contentLower.includes('council') || contentLower.includes('government') || contentLower.includes('mayor')) {
     category = 'government';
-  } else if (contentLower.includes('school') || contentLower.includes('student') || contentLower.includes('education')) {
+  } else if (contentLower.includes('school') || contentLower.includes('student') || contentLower.includes('education') || contentLower.includes('library')) {
     category = 'education';
+  } else if (titleLower.includes('out & about') || titleLower.includes('jazz') || titleLower.includes('festival') || contentLower.includes('theater') || contentLower.includes('music')) {
+    category = 'events';
   }
   
   return {
@@ -340,7 +260,7 @@ function createArticleObject(articleData, index) {
     title: articleData.title,
     description: description,
     date: new Date().toISOString().split('T')[0],
-    author: articleData.author || 'Community Observer',
+    author: articleData.author || 'Janice Seiferling',  // Default to Janice
     category: category,
     tags: [category, 'local', 'news'],
     image: '/images/placeholder-council.jpg',
