@@ -122,144 +122,95 @@ export async function POST({ request }) {
 
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
+  console.log('API: Starting article extraction from text length:', text.length);
+
+  // First, try to find articles using pattern matching
   const articles = [];
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  
+
   console.log('API: Total non-empty lines:', lines.length);
-  console.log('API: First 20 lines:', lines.slice(0, 20));
-  
-  let i = 0;
-  let articleCount = 0;
-  
-  while (i < lines.length && articleCount < 15) {
-    const line = lines[i];
-    
-    // Skip common header/footer elements
-    if (isHeaderFooter(line)) {
-      i++;
-      continue;
-    }
-    
-    // Check if this looks like a title (newspaper titles are usually bold/prominent)
-    // They typically:
-    // 1. Are 15-150 characters long (reduced from 20 to catch shorter titles)
-    // 2. Start with a capital letter
-    // 3. Are followed within a few lines by "By [Author]" or content
-    // 4. Don't contain common non-title patterns
-    const looksLikeTitle = line.length >= 15 && 
-                           line.length <= 150 &&
-                           /^[A-Z]/.test(line) &&
-                           !line.match(/^(Page|See[\s]+[A-Z]{2,}|Photo|Image|Figure|Table|Continue|VOL\.|Find things to do)/i) &&
-                           !line.match(/^\d/) &&
-                           !line.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i) &&
-                           !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)/i) &&
-                           !line.match(/^(Welcome to|Submissions?|Send|Include|For more|Call|Email|Phone)/i);
-    
-    if (!looksLikeTitle) {
-      i++;
-      continue;
-    }
-    
-    // Look ahead to find "By [Author]" within next 10 lines
-    let authorLine = null;
-    let contentStartIndex = i + 1;
-    
-    for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
-      const nextLine = lines[j];
-      
-      // Check for "By [Author Name]" pattern
-      const authorMatch = nextLine.match(/^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/);
-      if (authorMatch) {
-        authorLine = authorMatch[1];
-        contentStartIndex = j + 1;
-        break;
-      }
-      
-      // If we hit another title-like line, stop
-      if (nextLine.length >= 20 && /^[A-Z]/.test(nextLine) && !isHeaderFooter(nextLine)) {
-        break;
+  console.log('API: First 50 lines:', lines.slice(0, 50));
+
+  // Try a different approach: look for "By [Author]" patterns anywhere in text
+  // This is more robust for PDFs where formatting might not preserve line breaks
+  const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
+  const matches = [...text.matchAll(bylinePattern)];
+
+  console.log('API: Found', matches.length, 'potential bylines');
+
+  // For each byline, try to extract the article
+  for (let i = 0; i < matches.length && articles.length < 10; i++) {
+    const bylineMatch = matches[i];
+    const bylineIndex = bylineMatch.index;
+    const author = bylineMatch[1];
+
+    // Look backwards from the byline to find the title
+    let title = null;
+    const textBeforeByline = text.substring(0, bylineIndex);
+
+    // Find the last sentence-ending punctuation before the byline (within 200 chars)
+    const relevantText = textBeforeByline.slice(-200);
+    const sentences = relevantText.split(/[.!?]/);
+
+    // The title is likely the last complete sentence before the byline
+    if (sentences.length > 1) {
+      const potentialTitle = sentences[sentences.length - 2].trim();
+      if (potentialTitle.length >= 15 && potentialTitle.length <= 150 && /^[A-Z]/.test(potentialTitle)) {
+        title = potentialTitle;
       }
     }
-    
-    // If no author found within reasonable distance, only accept longer titles
-    // This helps filter out random lines while allowing real article titles
-    if (!authorLine && line.length < 25) {
-      i++;
-      continue;
-    }
-    
-    // We found a title! Now extract the content
-    const title = line;
-    const author = authorLine || 'Community Observer Staff';
-    const content = [];
-    
-    // Collect content until we hit the next article title or end
-    let j = contentStartIndex;
-    while (j < lines.length) {
-      const contentLine = lines[j];
-      
-      // Stop if we hit another title
-      if (j > contentStartIndex + 3 && 
-          contentLine.length >= 20 && 
-          contentLine.length <= 150 &&
-          /^[A-Z]/.test(contentLine) &&
-          !isHeaderFooter(contentLine)) {
-        
-        // Check if this potential next title has a byline
-        let hasNextByline = false;
-        for (let k = j + 1; k < Math.min(j + 10, lines.length); k++) {
-          if (/^By\s+[A-Z]/.test(lines[k])) {
-            hasNextByline = true;
-            break;
-          }
-        }
-        
-        if (hasNextByline) {
-          break; // This is the next article
+
+    if (!title) {
+      // Fallback: look for a capitalized phrase before the byline
+      const beforeByline = textBeforeByline.slice(-100);
+      const words = beforeByline.split(/\s+/);
+      for (let j = words.length - 1; j >= 0; j--) {
+        const phrase = words.slice(j).join(' ');
+        if (phrase.length >= 15 && phrase.length <= 150 && /^[A-Z]/.test(phrase)) {
+          title = phrase;
+          break;
         }
       }
-      
-      // Skip header/footer lines in content
-      if (!isHeaderFooter(contentLine)) {
-        content.push(contentLine);
-      }
-      
-      j++;
-      
-      // Limit content to reasonable length (about 2000 words max)
-      if (content.join(' ').split(/\s+/).length > 2000) {
-        break;
-      }
     }
-    
-    // Only save if we have substantial content (at least 50 words)
-    const wordCount = content.join(' ').split(/\s+/).length;
-    if (wordCount >= 50) {
-      console.log(`API: Found article "${title}" by ${author} (${wordCount} words)`);
+
+    if (!title) continue;
+
+    // Extract content after the byline
+    const contentStart = bylineIndex + bylineMatch[0].length;
+    const remainingText = text.substring(contentStart);
+
+    // Find where this article ends (next byline or major section break)
+    let contentEnd = remainingText.length;
+    const nextBylineMatch = matches[i + 1];
+    if (nextBylineMatch) {
+      contentEnd = nextBylineMatch.index - contentStart;
+    }
+
+    const articleContent = remainingText.substring(0, contentEnd).trim();
+    const paragraphs = articleContent.split('\n\n').filter(p => p.trim().length > 0);
+
+    if (paragraphs.length > 0) {
+      console.log(`API: Found article "${title}" by ${author} (${paragraphs.length} paragraphs)`);
       articles.push(createArticleObject({
         title: title,
         author: author,
-        content: content
-      }, articleCount));
-      articleCount++;
+        content: paragraphs
+      }, articles.length));
     }
-    
-    // Move to where we stopped collecting content
-    i = j;
   }
-  
-  console.log('API: Found', articles.length, 'articles using title/byline detection');
-  
-  // If we didn't find any articles, try the fallback chunking method
-  if (articles.length === 0) {
-    console.log('API: No articles found, using fallback chunking');
+
+  console.log('API: Found', articles.length, 'articles using byline pattern matching');
+
+  // If we didn't find enough articles, use the fallback chunking method
+  if (articles.length < 3) {
+    console.log('API: Not enough articles found, using fallback chunking');
     return createArticleChunks(text);
   }
-  
+
   return articles;
 }
 
-// Helper to identify header/footer elements
+// Helper to identify header/footer elements (kept for fallback chunking)
 function isHeaderFooter(line) {
   return line.match(/^(Page\s+\d+|VOL\.|www\.|Email|Phone|Copyright|©|\d{4}|September|October|November|Community Observer)/) ||
          line.match(/^\d+$/) ||
