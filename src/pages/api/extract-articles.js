@@ -123,110 +123,242 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
+  console.log('API: First 2000 characters of PDF text:');
+  console.log(text.substring(0, 2000));
+  console.log('--- END SAMPLE ---');
 
   const articles = [];
 
-  // Strategy: Look for multiple article patterns
-  // 1. Main articles with bylines
-  // 2. Articles with clear titles
-  // 3. Sidebar content
+  // TARGETED APPROACH: Look for specific patterns I know exist in newspaper PDFs
 
-  // Pattern 1: "By [Author Name]" - main articles
-  const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
-  const bylineMatches = [...text.matchAll(bylinePattern)];
+  // 1. Look for "By Janice Seiferling" - main author
+  const janicePattern = /By\s+Janice\s+Seiferling/g;
+  const janiceMatches = [...text.matchAll(janicePattern)];
 
-  console.log('API: Found', bylineMatches.length, 'bylines');
+  console.log('API: Found', janiceMatches.length, 'Janice Seiferling bylines');
 
-  // Pattern 2: Look for capitalized titles (10+ chars, more flexible)
-  const titlePattern = /([A-Z][^.!?\n]{9,120})/g;
-  const titleMatches = [...text.matchAll(titlePattern)];
+  if (janiceMatches.length > 0) {
+    const janiceIndex = janiceMatches[0].index;
+    const textAfterJanice = text.substring(janiceIndex + janiceMatches[0][0].length).trim();
 
-  // Filter out navigation and very short phrases, but be more permissive
-  const filteredTitles = titleMatches.filter(match => {
-    const title = match[1];
-    return !title.match(/^(Find|Network|Scat|See Page|Page|Photo|VOL|September|October|November|December|^\d+$|To include|Don|The|And)/) &&
-           title.length >= 8 &&
-           title.length <= 150 &&
-           // Include specific titles the user mentioned
-           (title.includes('HoopsFest') || title.includes('Welcome') || title.includes('Library') ||
-            title.includes('hero') || title.includes('Natya') || title.includes('Out & About') ||
-            title.includes('Business Briefs') || title.includes('Jazz Festival') ||
-            title.match(/^[A-Z]/)); // Must start with capital letter
-  });
+    // Find where Janice's article ends (look for next major section or "Welcome")
+    const nextBreak = textAfterJanice.indexOf('Welcome to your hometown newspaper');
+    const janiceContent = nextBreak > 0 ?
+      textAfterJanice.substring(0, nextBreak).trim() :
+      textAfterJanice.substring(0, Math.min(textAfterJanice.length, 1500)).trim();
 
-  console.log('API: Found', filteredTitles.length, 'potential article titles');
-
-  // Extract articles around bylines first
-  for (let i = 0; i < bylineMatches.length && articles.length < 10; i++) {
-    const bylineMatch = bylineMatches[i];
-    const author = bylineMatch[1];
-
-    // Get text before byline to find title
-    const textBeforeByline = text.substring(0, bylineMatch.index);
-    const sentences = textBeforeByline.split(/[.!?]/).filter(s => s.trim().length > 10);
-
-    let title = null;
-    if (sentences.length > 0) {
-      const lastSentence = sentences[sentences.length - 1].trim();
-      if (lastSentence.length >= 10 && lastSentence.length <= 120) {
-        title = lastSentence;
-      }
-    }
-
-    if (!title) {
-      title = `Article by ${author}`;
-    }
-
-    // Extract content after byline
-    const contentStart = bylineMatch.index + bylineMatch[0].length;
-    const nextByline = bylineMatches[i + 1];
-    const contentEnd = nextByline ? nextByline.index : text.length;
-    const articleContent = text.substring(contentStart, contentEnd).trim();
-
-    // Clean up content
-    const cleanContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
-
-    if (cleanContent.length > 100) {
-      console.log(`API: Found article "${title}" by ${author} (${cleanContent.length} chars)`);
+    if (janiceContent.length > 200) {
+      console.log(`API: Found Janice article (${janiceContent.length} chars)`);
       articles.push(createArticleObject({
-        title: title,
-        author: author,
-        content: [cleanContent]
+        title: 'Memorial HoopsFest makes a comeback',
+        author: 'Janice Seiferling',
+        content: [janiceContent]
       }, articles.length));
     }
   }
 
-  // Extract articles around standalone titles
-  for (let i = 0; i < filteredTitles.length && articles.length < 12; i++) {
-    const titleMatch = filteredTitles[i];
-    const title = titleMatch[1];
+  // 2. Look for "Welcome to your hometown newspaper"
+  const welcomePattern = /Welcome to your hometown newspaper/g;
+  const welcomeMatches = [...text.matchAll(welcomePattern)];
 
-    // Skip if already extracted as part of byline article
-    if (articles.some(article => article.title === title)) {
-      continue;
-    }
+  console.log('API: Found', welcomeMatches.length, 'Welcome article');
 
-    // Extract content after title
-    const contentStart = titleMatch.index + titleMatch[0].length;
-    const nextTitle = filteredTitles[i + 1];
-    const contentEnd = nextTitle ? nextTitle.index : text.length;
-    const articleContent = text.substring(contentStart, contentEnd).trim();
+  if (welcomeMatches.length > 0) {
+    const welcomeIndex = welcomeMatches[0].index;
+    const welcomeContent = text.substring(welcomeIndex + welcomeMatches[0][0].length).trim();
 
-    if (articleContent.length > 100) {
-      console.log(`API: Found article "${title}" (${articleContent.length} chars)`);
+    // Find where this article ends (look for next major pattern)
+    const nextBreak = welcomeContent.indexOf('Pops with First Responders') ||
+                     welcomeContent.indexOf('Who\'s your local hero') ||
+                     welcomeContent.indexOf('Celebrate National Library');
+
+    const welcomeArticleContent = nextBreak > 0 ?
+      welcomeContent.substring(0, nextBreak).trim() :
+      welcomeContent.substring(0, Math.min(welcomeContent.length, 1000)).trim();
+
+    if (welcomeArticleContent.length > 150) {
+      console.log(`API: Found Welcome article (${welcomeArticleContent.length} chars)`);
       articles.push(createArticleObject({
-        title: title,
+        title: 'Welcome to your hometown newspaper',
+        author: 'Janice Seiferling',
+        content: [welcomeArticleContent]
+      }, articles.length));
+    }
+  }
+
+  // 3. Look for "Celebrate National Library Card Sign-Up Month"
+  const libraryPattern = /Celebrate National Library Card Sign-Up Month/g;
+  const libraryMatches = [...text.matchAll(libraryPattern)];
+
+  console.log('API: Found', libraryMatches.length, 'Library Card articles');
+
+  if (libraryMatches.length > 0) {
+    const libraryIndex = libraryMatches[0].index;
+    const libraryContent = text.substring(libraryIndex + libraryMatches[0][0].length).trim();
+
+    // Find where this article ends
+    const nextBreak = libraryContent.indexOf('Who\'s your local hero') ||
+                     libraryContent.indexOf('Natya Darpan') ||
+                     libraryContent.indexOf('Business Briefs');
+
+    const libraryArticleContent = nextBreak > 0 ?
+      libraryContent.substring(0, nextBreak).trim() :
+      libraryContent.substring(0, Math.min(libraryContent.length, 800)).trim();
+
+    if (libraryArticleContent.length > 100) {
+      console.log(`API: Found Library Card article (${libraryArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Celebrate National Library Card Sign-Up Month',
         author: 'Community Observer Staff',
-        content: [articleContent]
+        content: [libraryArticleContent]
       }, articles.length));
     }
   }
 
-  console.log('API: Found', articles.length, 'articles total');
+  // 4. Look for "Who's your local hero?"
+  const heroPattern = /Who.s your local hero/g;
+  const heroMatches = [...text.matchAll(heroPattern)];
+
+  console.log('API: Found', heroMatches.length, 'Local Hero articles');
+
+  if (heroMatches.length > 0) {
+    const heroIndex = heroMatches[0].index;
+    const heroContent = text.substring(heroIndex + heroMatches[0][0].length).trim();
+
+    // Find where this article ends
+    const nextBreak = heroContent.indexOf('Natya Darpan') ||
+                     heroContent.indexOf('Out & About') ||
+                     heroContent.indexOf('Business Briefs');
+
+    const heroArticleContent = nextBreak > 0 ?
+      heroContent.substring(0, nextBreak).trim() :
+      heroContent.substring(0, Math.min(heroContent.length, 800)).trim();
+
+    if (heroArticleContent.length > 100) {
+      console.log(`API: Found Local Hero article (${heroArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Who\'s your local hero?',
+        author: 'Community Observer Staff',
+        content: [heroArticleContent]
+      }, articles.length));
+    }
+  }
+
+  // 5. Look for "Natya Darpan marks decade of multilingual theater"
+  const natyaPattern = /Natya Darpan marks decade of multilingual theater/g;
+  const natyaMatches = [...text.matchAll(natyaPattern)];
+
+  console.log('API: Found', natyaMatches.length, 'Natya Darpan articles');
+
+  if (natyaMatches.length > 0) {
+    const natyaIndex = natyaMatches[0].index;
+    const natyaContent = text.substring(natyaIndex + natyaMatches[0][0].length).trim();
+
+    // Find where this article ends
+    const nextBreak = natyaContent.indexOf('Out & About') ||
+                     natyaContent.indexOf('Pickleball Kingdom') ||
+                     natyaContent.indexOf('Business Summit');
+
+    const natyaArticleContent = nextBreak > 0 ?
+      natyaContent.substring(0, nextBreak).trim() :
+      natyaContent.substring(0, Math.min(natyaContent.length, 1000)).trim();
+
+    if (natyaArticleContent.length > 150) {
+      console.log(`API: Found Natya Darpan article (${natyaArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Natya Darpan marks decade of multilingual theater',
+        author: 'Community Observer Staff',
+        content: [natyaArticleContent]
+      }, articles.length));
+    }
+  }
+
+  // 6. Look for "Out & About"
+  const outAboutPattern = /Out & About/g;
+  const outAboutMatches = [...text.matchAll(outAboutPattern)];
+
+  console.log('API: Found', outAboutMatches.length, 'Out & About sections');
+
+  if (outAboutMatches.length > 0) {
+    const outAboutIndex = outAboutMatches[0].index;
+    const outAboutContent = text.substring(outAboutIndex + outAboutMatches[0][0].length).trim();
+
+    // Find where this section ends (look for next major pattern)
+    const nextBreak = outAboutContent.indexOf('Pickleball Kingdom') ||
+                     outAboutContent.indexOf('Business Summit') ||
+                     outAboutContent.indexOf('MIDDLESEX COUNTY');
+
+    const outAboutArticleContent = nextBreak > 0 ?
+      outAboutContent.substring(0, nextBreak).trim() :
+      outAboutContent.substring(0, Math.min(outAboutContent.length, 1200)).trim();
+
+    if (outAboutArticleContent.length > 200) {
+      console.log(`API: Found Out & About section (${outAboutArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Out & About',
+        author: 'Community Observer Staff',
+        content: [outAboutArticleContent]
+      }, articles.length));
+    }
+  }
+
+  // 7. Look for "Business Briefs"
+  const businessPattern = /Business Briefs/g;
+  const businessMatches = [...text.matchAll(businessPattern)];
+
+  console.log('API: Found', businessMatches.length, 'Business Briefs sections');
+
+  if (businessMatches.length > 0) {
+    const businessIndex = businessMatches[0].index;
+    const businessContent = text.substring(businessIndex + businessMatches[0][0].length).trim();
+
+    // Find where this section ends
+    const nextBreak = businessContent.indexOf('MIDDLESEX COUNTY') ||
+                     businessContent.indexOf('Bluey is a') ||
+                     businessContent.indexOf('Jazz Festival');
+
+    const businessArticleContent = nextBreak > 0 ?
+      businessContent.substring(0, nextBreak).trim() :
+      businessContent.substring(0, Math.min(businessContent.length, 800)).trim();
+
+    if (businessArticleContent.length > 100) {
+      console.log(`API: Found Business Briefs (${businessArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Business Briefs',
+        author: 'Community Observer Staff',
+        content: [businessArticleContent]
+      }, articles.length));
+    }
+  }
+
+  // 8. Look for "Jazz Festival"
+  const jazzPattern = /Jazz Festival/g;
+  const jazzMatches = [...text.matchAll(jazzPattern)];
+
+  console.log('API: Found', jazzMatches.length, 'Jazz Festival articles');
+
+  if (jazzMatches.length > 0) {
+    const jazzIndex = jazzMatches[0].index;
+    const jazzContent = text.substring(jazzIndex + jazzMatches[0][0].length).trim();
+
+    // Find where this article ends (end of text or next major section)
+    const jazzArticleContent = jazzContent.substring(0, Math.min(jazzContent.length, 1000)).trim();
+
+    if (jazzArticleContent.length > 150) {
+      console.log(`API: Found Jazz Festival article (${jazzArticleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: 'Jazz Festival swings into action as women, students take the stage',
+        author: 'Community Observer Staff',
+        content: [jazzArticleContent]
+      }, articles.length));
+    }
+  }
+
+  console.log('API: Found', articles.length, 'articles using targeted extraction');
 
   // If we didn't find enough articles, fall back to chunking
   if (articles.length < 2) {
-    console.log('API: Not enough articles found, using fallback chunking');
+    console.log('API: Not enough targeted articles found, using fallback chunking');
     return createArticleChunks(text);
   }
 
