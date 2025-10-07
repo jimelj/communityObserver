@@ -123,131 +123,107 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
-  console.log('API: Sample text (first 500 chars):', text.substring(0, 500));
 
-  // Simple approach: split by "By [Author]" patterns and create articles
+  // NEWSPAPER LAYOUT ANALYSIS
+  // Strategy: Look for newspaper article patterns
+  // 1. Main articles have titles in ALL CAPS or Title Case
+  // 2. Authors are typically "By [Author Name]"
+  // 3. Articles have substantial content (200+ words)
+  // 4. Ignore sidebar navigation like "See Pages 4-5"
+
   const articles = [];
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
   console.log('API: Total non-empty lines:', lines.length);
-  console.log('API: First 30 lines:', lines.slice(0, 30));
 
-  // Find all "By [Author]" patterns (multiple approaches)
-  const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
-  const matches = [...text.matchAll(bylinePattern)];
+  // Pattern 1: Look for "By [Author]" patterns
+  const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
+  const bylineMatches = [...text.matchAll(bylinePattern)];
 
-  // Try broader patterns if standard bylines not found
-  if (matches.length === 0) {
-    console.log('API: No standard bylines found, trying broader patterns');
+  console.log('API: Found', bylineMatches.length, 'bylines');
 
-    // Pattern 1: "By FirstName LastName"
-    const pattern1 = /By\s+([A-Z][a-z]+\s+[A-Z][a-z]+)/g;
-    const matches1 = [...text.matchAll(pattern1)];
+  // Pattern 2: Look for ALL CAPS titles (typical newspaper headlines)
+  const titlePattern = /^([A-Z][^.!?\n]*[A-Z])$/gm;
+  const titleMatches = [...text.matchAll(titlePattern)];
 
-    // Pattern 2: Just capitalized names that could be authors
-    const pattern2 = /([A-Z][a-z]+\s+[A-Z][a-z]+)/g;
-    const matches2 = [...text.matchAll(pattern2)];
+  console.log('API: Found', titleMatches.length, 'potential titles');
 
-    // Filter pattern 2 to find likely author names (not preceded by common words)
-    const filteredMatches2 = matches2.filter(match => {
-      const name = match[1];
-      const beforeText = text.substring(0, match.index).slice(-50);
-      // Don't include if preceded by common non-author words
-      return !beforeText.match(/(See|Page|Photo|The|And|Or|In|At|On|For|With|From)\s*$/);
-    });
+  // Pattern 3: Look for Title Case titles (sentence case with caps)
+  const titleCasePattern = /^([A-Z][^.!?\n]{14,149})$/gm;
+  const titleCaseMatches = [...text.matchAll(titleCasePattern)];
 
-    console.log('API: Pattern 1 found:', matches1.length, 'Pattern 2 found:', filteredMatches2.length);
+  // Filter title case to avoid short phrases and navigation
+  const filteredTitleCase = titleCaseMatches.filter(match => {
+    const title = match[1];
+    return !title.match(/^(See|Page|Photo|The|And|Or|In|At|On|For|With|From|To|Of|A|An|Find|Network|Scat)\s/) &&
+           !title.match(/Pages?\s+\d+/) &&
+           !title.match(/^\d+$/);
+  });
 
-    // Use pattern 1 if available, otherwise pattern 2
-    if (matches1.length > 0) {
-      matches.push(...matches1);
-    } else if (filteredMatches2.length > 0) {
-      // Convert pattern 2 matches to the expected format
-      matches.push(...filteredMatches2.map(match => ({
-        index: match.index,
-        0: match[0],
-        1: match[1]
-      })));
+  console.log('API: Found', filteredTitleCase.length, 'filtered title case titles');
+
+  // Combine all potential titles
+  const allTitles = [...titleMatches, ...filteredTitleCase];
+
+  // Sort by position in text
+  allTitles.sort((a, b) => a.index - b.index);
+
+  // Now extract articles around these titles
+  for (let i = 0; i < allTitles.length && articles.length < 6; i++) {
+    const titleMatch = allTitles[i];
+    const title = titleMatch[1];
+
+    // Skip if this looks like navigation/sidebar content
+    if (isNavigationContent(title)) {
+      continue;
+    }
+
+    // Find the author (look for byline within 300 chars after title)
+    let author = 'Janice Seiferling'; // Default to the main author
+    const textAfterTitle = text.substring(titleMatch.index + titleMatch[0].length, titleMatch.index + titleMatch[0].length + 300);
+
+    // Check for byline in the text after title
+    const bylineInContent = textAfterTitle.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+    if (bylineInContent) {
+      author = bylineInContent[1];
+    }
+
+    // Extract article content (from title to next title or end)
+    const nextTitleIndex = (allTitles[i + 1]?.index) || text.length;
+    let articleContent = text.substring(titleMatch.index + titleMatch[0].length, nextTitleIndex).trim();
+
+    // Clean up the content - remove bylines and short fragments
+    articleContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
+
+    // Split into paragraphs
+    const paragraphs = articleContent.split('\n\n').filter(p => p.trim().length > 50);
+
+    if (paragraphs.length > 0 && articleContent.length > 200) {
+      console.log(`API: Found article "${title}" by ${author} (${paragraphs.length} paragraphs, ${articleContent.length} chars)`);
+      articles.push(createArticleObject({
+        title: title,
+        author: author,
+        content: paragraphs
+      }, articles.length));
     }
   }
 
-  console.log('API: Found', matches.length, 'potential bylines');
-  if (matches.length > 0) {
-    console.log('API: First few bylines:', matches.slice(0, 3).map(m => `"${m[0]}" at position ${m.index}`));
-  }
+  console.log('API: Found', articles.length, 'articles using newspaper layout analysis');
 
-  // If we have multiple bylines, split the content around them
-  if (matches.length >= 2) {
-    for (let i = 0; i < matches.length - 1 && articles.length < 8; i++) {
-      const currentByline = matches[i];
-      const nextByline = matches[i + 1];
-
-      const startIndex = currentByline.index + currentByline[0].length;
-      const endIndex = nextByline.index;
-
-      const articleText = text.substring(startIndex, endIndex).trim();
-      const author = currentByline[1];
-
-      // Get title from the text before the byline (last 200 chars)
-      const textBeforeByline = text.substring(0, currentByline.index).slice(-200);
-      const sentences = textBeforeByline.split(/[.!?]/);
-      let title = null;
-
-      if (sentences.length > 1) {
-        const potentialTitle = sentences[sentences.length - 2].trim();
-        if (potentialTitle.length >= 15 && potentialTitle.length <= 100) {
-          title = potentialTitle;
-        }
-      }
-
-      if (!title) {
-        // Fallback: use first line or a descriptive title
-        const firstLine = articleText.split('\n')[0];
-        if (firstLine && firstLine.length > 20) {
-          title = firstLine.substring(0, 80) + '...';
-        } else {
-          title = `Article by ${author}`;
-        }
-      }
-
-      if (articleText.length > 100) { // Only if substantial content
-        console.log(`API: Found article "${title}" by ${author}`);
-        articles.push(createArticleObject({
-          title: title,
-          author: author,
-          content: [articleText]
-        }, articles.length));
-      }
-    }
-
-    // Add the last article after the final byline
-    if (matches.length > 0) {
-      const lastByline = matches[matches.length - 1];
-      const lastArticleText = text.substring(lastByline.index + lastByline[0].length).trim();
-
-      if (lastArticleText.length > 100) {
-        const author = lastByline[1];
-        const title = `Article by ${author}`;
-
-        console.log(`API: Found final article "${title}" by ${author}`);
-        articles.push(createArticleObject({
-          title: title,
-          author: author,
-          content: [lastArticleText]
-        }, articles.length));
-      }
-    }
-  }
-
-  console.log('API: Found', articles.length, 'articles using byline splitting');
-
-  // If we didn't find enough articles or no bylines, use the fallback chunking method
-  if (articles.length < 3 || matches.length === 0) {
-    console.log('API: Not enough articles or no bylines found, using fallback chunking');
+  // If we didn't find good articles, fall back to chunking
+  if (articles.length < 2) {
+    console.log('API: Not enough good articles found, using fallback chunking');
     return createArticleChunks(text);
   }
 
   return articles;
+}
+
+// Helper to identify navigation/sidebar content
+function isNavigationContent(text) {
+  return text.match(/^(Find things to do|Network & Learn|Scat singing|See Pages?|See Page|Photo by|VOL\.|September|October|November|December)/) ||
+         text.match(/^\d+$/) ||
+         text.length < 10;
 }
 
 // Helper to identify header/footer elements (kept for fallback chunking)
