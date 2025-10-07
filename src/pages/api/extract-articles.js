@@ -142,17 +142,18 @@ function extractArticlesFromText(text) {
     
     // Check if this looks like a title (newspaper titles are usually bold/prominent)
     // They typically:
-    // 1. Are 20-150 characters long
+    // 1. Are 15-150 characters long (reduced from 20 to catch shorter titles)
     // 2. Start with a capital letter
     // 3. Are followed within a few lines by "By [Author]" or content
     // 4. Don't contain common non-title patterns
-    const looksLikeTitle = line.length >= 20 && 
+    const looksLikeTitle = line.length >= 15 && 
                            line.length <= 150 &&
                            /^[A-Z]/.test(line) &&
-                           !line.match(/^(Page|See|Photo|Image|Figure|Table|Continue)/i) &&
+                           !line.match(/^(Page|See[\s]+[A-Z]{2,}|Photo|Image|Figure|Table|Continue|VOL\.|Find things to do)/i) &&
                            !line.match(/^\d/) &&
                            !line.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i) &&
-                           !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)/i);
+                           !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)/i) &&
+                           !line.match(/^(Welcome to|Submissions?|Send|Include|For more|Call|Email|Phone)/i);
     
     if (!looksLikeTitle) {
       i++;
@@ -180,8 +181,9 @@ function extractArticlesFromText(text) {
       }
     }
     
-    // If no author found within reasonable distance, skip this potential title
-    if (!authorLine && line.length < 40) {
+    // If no author found within reasonable distance, only accept longer titles
+    // This helps filter out random lines while allowing real article titles
+    if (!authorLine && line.length < 25) {
       i++;
       continue;
     }
