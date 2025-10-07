@@ -133,13 +133,14 @@ function extractArticlesFromText(text) {
   // Works for any newspaper by looking for common patterns
 
   // 1. Look for author bylines (most reliable pattern)
-  // Match "By Author Name" or "By: Author Name" or "Written by Author Name"
-  const bylinePattern = /(?:By|Written by|Author)[\s:]+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)*)/gi;
+  // Match "By Author Name" at start of line or after whitespace
+  // Must be followed by a full name (at least 2 parts, each 3+ chars)
+  const bylinePattern = /(?:^|\n)\s*(?:By|Written by)\s+([A-Z][a-z]{2,}\s+(?:[A-Z]\.\s+)?[A-Z][a-z]{2,}(?:\s+[A-Z][a-z]{2,})?)/gm;
   const bylineMatches = [...text.matchAll(bylinePattern)];
 
   console.log('API: Found', bylineMatches.length, 'author bylines');
   if (bylineMatches.length > 0) {
-    console.log('API: Sample bylines:', bylineMatches.slice(0, 3).map(m => m[0]));
+    console.log('API: Sample bylines:', bylineMatches.slice(0, 5).map(m => m[0].trim()));
   }
 
   // Extract articles around bylines first (most reliable)
@@ -148,18 +149,25 @@ function extractArticlesFromText(text) {
     const author = bylineMatch[1];
 
     // Get text before byline to find title
-    const textBeforeByline = text.substring(0, bylineMatch.index);
-    const sentences = textBeforeByline.split(/[.!?]/).filter(s => s.trim().length > 15);
+    // Look for the last meaningful line before the byline (likely the headline)
+    const textBeforeByline = text.substring(Math.max(0, bylineMatch.index - 500), bylineMatch.index);
+    const lines = textBeforeByline.split(/\n+/).filter(line => {
+      const trimmed = line.trim();
+      // Skip navigation, dates, short lines
+      return trimmed.length >= 15 && 
+             trimmed.length <= 150 &&
+             !trimmed.match(/^(See|Page|Photo|VOL|September|October|November|December|\d+)/i);
+    });
 
     let title = null;
-    if (sentences.length > 0) {
-      const lastSentence = sentences[sentences.length - 1].trim();
-      if (lastSentence.length >= 15 && lastSentence.length <= 120) {
-        title = lastSentence;
-      }
+    if (lines.length > 0) {
+      // Get the last valid line before the byline
+      title = lines[lines.length - 1].trim();
+      // Clean up extra spaces
+      title = title.replace(/\s+/g, ' ');
     }
 
-    if (!title) {
+    if (!title || title.length < 15) {
       title = `Article by ${author}`;
     }
 
@@ -173,12 +181,14 @@ function extractArticlesFromText(text) {
     const cleanContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
 
     if (cleanContent.length > 200) {
-      console.log(`API: Found article "${title}" by ${author} (${cleanContent.length} chars)`);
+      console.log(`API: ✓ Article #${articles.length + 1}: "${title}" by ${author} (${cleanContent.length} chars)`);
       articles.push(createArticleObject({
         title: title,
         author: author,
         content: [cleanContent]
       }, articles.length));
+    } else {
+      console.log(`API: ✗ Skipped short article by ${author} (${cleanContent.length} chars)`);
     }
   }
 
@@ -234,7 +244,7 @@ function extractArticlesFromText(text) {
     const articleContent = text.substring(contentStart, contentEnd).trim();
 
     if (articleContent.length > 200) {
-      console.log(`API: Found article "${title}" (${articleContent.length} chars)`);
+      console.log(`API: ✓ Article #${articles.length + 1}: "${title}" (${articleContent.length} chars)`);
       articles.push(createArticleObject({
         title: title,
         author: 'Newspaper Staff',
@@ -278,7 +288,7 @@ function extractArticlesFromText(text) {
         sectionContent.substring(0, Math.min(sectionContent.length, 1000)).trim();
 
       if (sectionArticleContent.length > 200) {
-        console.log(`API: Found section "${sectionTitle}" (${sectionArticleContent.length} chars)`);
+        console.log(`API: ✓ Article #${articles.length + 1}: "${sectionTitle}" (${sectionArticleContent.length} chars)`);
         articles.push(createArticleObject({
           title: sectionTitle,
           author: 'Newspaper Staff',
