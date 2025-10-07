@@ -123,6 +123,7 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
+  console.log('API: Sample text (first 500 chars):', text.substring(0, 500));
 
   // Simple approach: split by "By [Author]" patterns and create articles
   const articles = [];
@@ -131,11 +132,35 @@ function extractArticlesFromText(text) {
   console.log('API: Total non-empty lines:', lines.length);
   console.log('API: First 30 lines:', lines.slice(0, 30));
 
-  // Find all "By [Author]" patterns
+  // Find all "By [Author]" patterns (more flexible)
   const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
   const matches = [...text.matchAll(bylinePattern)];
 
+  // If that doesn't work, try a broader search for author patterns
+  if (matches.length === 0) {
+    console.log('API: No standard bylines found, trying broader pattern');
+    const broadPattern = /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
+    const broadMatches = [...text.matchAll(broadPattern)];
+    // Filter to find likely author names (2-3 words, all caps first letters)
+    const authorMatches = broadMatches.filter(match => {
+      const name = match[1];
+      const words = name.split(/\s+/);
+      return words.length >= 2 && words.length <= 3 &&
+             words.every(word => /^[A-Z][a-z]+$/.test(word));
+    });
+
+    console.log('API: Found', authorMatches.length, 'potential author names');
+    matches.push(...authorMatches.map(match => ({
+      index: match.index,
+      0: match[0],
+      1: match[1]
+    })));
+  }
+
   console.log('API: Found', matches.length, 'potential bylines');
+  if (matches.length > 0) {
+    console.log('API: First few bylines:', matches.slice(0, 3).map(m => `"${m[0]}" at position ${m.index}`));
+  }
 
   // If we have multiple bylines, split the content around them
   if (matches.length >= 2) {
