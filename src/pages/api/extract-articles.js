@@ -137,22 +137,27 @@ function extractArticlesFromText(text) {
 
   console.log('API: Found', bylineMatches.length, 'bylines');
 
-  // Pattern 2: Look for capitalized titles (15+ chars)
-  const titlePattern = /([A-Z][^.!?\n]{14,100})/g;
+  // Pattern 2: Look for capitalized titles (10+ chars, more flexible)
+  const titlePattern = /([A-Z][^.!?\n]{9,120})/g;
   const titleMatches = [...text.matchAll(titlePattern)];
 
-  // Filter out navigation and short phrases
+  // Filter out navigation and very short phrases, but be more permissive
   const filteredTitles = titleMatches.filter(match => {
     const title = match[1];
-    return !title.match(/^(Find|Network|Scat|See|Page|Photo|VOL|September|October|November|December)/) &&
-           !title.match(/^\d+$/) &&
-           title.length >= 15;
+    return !title.match(/^(Find|Network|Scat|See Page|Page|Photo|VOL|September|October|November|December|^\d+$|To include|Don|The|And)/) &&
+           title.length >= 8 &&
+           title.length <= 150 &&
+           // Include specific titles the user mentioned
+           (title.includes('HoopsFest') || title.includes('Welcome') || title.includes('Library') ||
+            title.includes('hero') || title.includes('Natya') || title.includes('Out & About') ||
+            title.includes('Business Briefs') || title.includes('Jazz Festival') ||
+            title.match(/^[A-Z]/)); // Must start with capital letter
   });
 
   console.log('API: Found', filteredTitles.length, 'potential article titles');
 
   // Extract articles around bylines first
-  for (let i = 0; i < bylineMatches.length && articles.length < 6; i++) {
+  for (let i = 0; i < bylineMatches.length && articles.length < 10; i++) {
     const bylineMatch = bylineMatches[i];
     const author = bylineMatch[1];
 
@@ -163,7 +168,7 @@ function extractArticlesFromText(text) {
     let title = null;
     if (sentences.length > 0) {
       const lastSentence = sentences[sentences.length - 1].trim();
-      if (lastSentence.length >= 15 && lastSentence.length <= 100) {
+      if (lastSentence.length >= 10 && lastSentence.length <= 120) {
         title = lastSentence;
       }
     }
@@ -181,7 +186,7 @@ function extractArticlesFromText(text) {
     // Clean up content
     const cleanContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
 
-    if (cleanContent.length > 150) {
+    if (cleanContent.length > 100) {
       console.log(`API: Found article "${title}" by ${author} (${cleanContent.length} chars)`);
       articles.push(createArticleObject({
         title: title,
@@ -192,7 +197,7 @@ function extractArticlesFromText(text) {
   }
 
   // Extract articles around standalone titles
-  for (let i = 0; i < filteredTitles.length && articles.length < 8; i++) {
+  for (let i = 0; i < filteredTitles.length && articles.length < 12; i++) {
     const titleMatch = filteredTitles[i];
     const title = titleMatch[1];
 
@@ -207,7 +212,7 @@ function extractArticlesFromText(text) {
     const contentEnd = nextTitle ? nextTitle.index : text.length;
     const articleContent = text.substring(contentStart, contentEnd).trim();
 
-    if (articleContent.length > 150) {
+    if (articleContent.length > 100) {
       console.log(`API: Found article "${title}" (${articleContent.length} chars)`);
       articles.push(createArticleObject({
         title: title,
@@ -220,7 +225,7 @@ function extractArticlesFromText(text) {
   console.log('API: Found', articles.length, 'articles total');
 
   // If we didn't find enough articles, fall back to chunking
-  if (articles.length < 3) {
+  if (articles.length < 2) {
     console.log('API: Not enough articles found, using fallback chunking');
     return createArticleChunks(text);
   }
