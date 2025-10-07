@@ -123,73 +123,105 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
-  console.log('API: First 1000 characters of PDF text:');
-  console.log(text.substring(0, 1000));
-  console.log('--- END SAMPLE ---');
-
-  // ULTRA-SIMPLE APPROACH
-  // Look for the most obvious patterns that should definitely exist
 
   const articles = [];
 
-  // 1. Look for "By Janice Seiferling" - this should definitely exist
-  const janicePattern = /By\s+Janice\s+Seiferling/g;
-  const janiceMatches = [...text.matchAll(janicePattern)];
+  // Strategy: Look for multiple article patterns
+  // 1. Main articles with bylines
+  // 2. Articles with clear titles
+  // 3. Sidebar content
 
-  console.log('API: Found', janiceMatches.length, 'Janice Seiferling matches');
+  // Pattern 1: "By [Author Name]" - main articles
+  const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/g;
+  const bylineMatches = [...text.matchAll(bylinePattern)];
 
-  if (janiceMatches.length > 0) {
-    // Split content around Janice's byline
-    const janiceIndex = janiceMatches[0].index;
-    const textAfterJanice = text.substring(janiceIndex + janiceMatches[0][0].length).trim();
+  console.log('API: Found', bylineMatches.length, 'bylines');
 
-    // Find where Janice's article ends (look for next major section)
-    const nextMajorBreak = textAfterJanice.indexOf('Welcome to your hometown newspaper');
-    const janiceContent = nextMajorBreak > 0 ?
-      textAfterJanice.substring(0, nextMajorBreak).trim() :
-      textAfterJanice.substring(0, Math.min(textAfterJanice.length, 1000)).trim();
+  // Pattern 2: Look for capitalized titles (15+ chars)
+  const titlePattern = /([A-Z][^.!?\n]{14,100})/g;
+  const titleMatches = [...text.matchAll(titlePattern)];
 
-    if (janiceContent.length > 200) {
-      console.log(`API: Found Janice article (${janiceContent.length} chars)`);
+  // Filter out navigation and short phrases
+  const filteredTitles = titleMatches.filter(match => {
+    const title = match[1];
+    return !title.match(/^(Find|Network|Scat|See|Page|Photo|VOL|September|October|November|December)/) &&
+           !title.match(/^\d+$/) &&
+           title.length >= 15;
+  });
+
+  console.log('API: Found', filteredTitles.length, 'potential article titles');
+
+  // Extract articles around bylines first
+  for (let i = 0; i < bylineMatches.length && articles.length < 6; i++) {
+    const bylineMatch = bylineMatches[i];
+    const author = bylineMatch[1];
+
+    // Get text before byline to find title
+    const textBeforeByline = text.substring(0, bylineMatch.index);
+    const sentences = textBeforeByline.split(/[.!?]/).filter(s => s.trim().length > 10);
+
+    let title = null;
+    if (sentences.length > 0) {
+      const lastSentence = sentences[sentences.length - 1].trim();
+      if (lastSentence.length >= 15 && lastSentence.length <= 100) {
+        title = lastSentence;
+      }
+    }
+
+    if (!title) {
+      title = `Article by ${author}`;
+    }
+
+    // Extract content after byline
+    const contentStart = bylineMatch.index + bylineMatch[0].length;
+    const nextByline = bylineMatches[i + 1];
+    const contentEnd = nextByline ? nextByline.index : text.length;
+    const articleContent = text.substring(contentStart, contentEnd).trim();
+
+    // Clean up content
+    const cleanContent = articleContent.replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '').trim();
+
+    if (cleanContent.length > 150) {
+      console.log(`API: Found article "${title}" by ${author} (${cleanContent.length} chars)`);
       articles.push(createArticleObject({
-        title: 'Memorial HoopsFest makes a comeback',
-        author: 'Janice Seiferling',
-        content: [janiceContent]
-      }, 0));
+        title: title,
+        author: author,
+        content: [cleanContent]
+      }, articles.length));
     }
   }
 
-  // 2. Look for the "Welcome" article
-  const welcomePattern = /Welcome to your hometown newspaper/g;
-  const welcomeMatches = [...text.matchAll(welcomePattern)];
+  // Extract articles around standalone titles
+  for (let i = 0; i < filteredTitles.length && articles.length < 8; i++) {
+    const titleMatch = filteredTitles[i];
+    const title = titleMatch[1];
 
-  console.log('API: Found', welcomeMatches.length, 'Welcome matches');
+    // Skip if already extracted as part of byline article
+    if (articles.some(article => article.title === title)) {
+      continue;
+    }
 
-  if (welcomeMatches.length > 0) {
-    const welcomeIndex = welcomeMatches[0].index;
-    const welcomeContent = text.substring(welcomeIndex + welcomeMatches[0][0].length).trim();
+    // Extract content after title
+    const contentStart = titleMatch.index + titleMatch[0].length;
+    const nextTitle = filteredTitles[i + 1];
+    const contentEnd = nextTitle ? nextTitle.index : text.length;
+    const articleContent = text.substring(contentStart, contentEnd).trim();
 
-    // Find where this article ends
-    const nextBreak = welcomeContent.indexOf('Pops with First Responders');
-    const welcomeArticleContent = nextBreak > 0 ?
-      welcomeContent.substring(0, nextBreak).trim() :
-      welcomeContent.substring(0, Math.min(welcomeContent.length, 800)).trim();
-
-    if (welcomeArticleContent.length > 100) {
-      console.log(`API: Found Welcome article (${welcomeArticleContent.length} chars)`);
+    if (articleContent.length > 150) {
+      console.log(`API: Found article "${title}" (${articleContent.length} chars)`);
       articles.push(createArticleObject({
-        title: 'Welcome to your hometown newspaper',
-        author: 'Janice Seiferling',
-        content: [welcomeArticleContent]
-      }, 1));
+        title: title,
+        author: 'Community Observer Staff',
+        content: [articleContent]
+      }, articles.length));
     }
   }
 
-  console.log('API: Found', articles.length, 'articles using manual extraction');
+  console.log('API: Found', articles.length, 'articles total');
 
-  // If we didn't find the expected articles, fall back to chunking
-  if (articles.length < 2) {
-    console.log('API: Manual extraction failed, using fallback chunking');
+  // If we didn't find enough articles, fall back to chunking
+  if (articles.length < 3) {
+    console.log('API: Not enough articles found, using fallback chunking');
     return createArticleChunks(text);
   }
 

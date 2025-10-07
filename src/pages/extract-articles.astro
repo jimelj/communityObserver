@@ -348,14 +348,13 @@ import Hero from '../components/Hero.astro';
           </div>
           <div class="flex-1">
             <div class="flex justify-between items-start mb-4">
-              <h4 class="text-lg font-semibold text-brand-navy">Article ${index + 1}</h4>
+              <h4 class="text-xl font-bold text-brand-navy">${article.title}</h4>
               <div class="flex space-x-2">
                 <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200" onclick="editArticle(${index})">
                   Edit
                 </button>
               </div>
             </div>
-            <h5 class="font-medium text-gray-900 mb-2">${article.title}</h5>
             <p class="text-sm text-gray-600 mb-3">${article.description}</p>
             <div class="flex flex-wrap gap-2">
               <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.category}</span>
