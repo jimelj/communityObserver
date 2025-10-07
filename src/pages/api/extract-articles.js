@@ -124,86 +124,87 @@ export async function POST({ request }) {
 function extractArticlesFromText(text) {
   console.log('API: Starting article extraction from text length:', text.length);
 
-  // First, try to find articles using pattern matching
+  // Simple approach: split by "By [Author]" patterns and create articles
   const articles = [];
   const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
   console.log('API: Total non-empty lines:', lines.length);
-  console.log('API: First 50 lines:', lines.slice(0, 50));
+  console.log('API: First 30 lines:', lines.slice(0, 30));
 
-  // Try a different approach: look for "By [Author]" patterns anywhere in text
-  // This is more robust for PDFs where formatting might not preserve line breaks
+  // Find all "By [Author]" patterns
   const bylinePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/g;
   const matches = [...text.matchAll(bylinePattern)];
 
   console.log('API: Found', matches.length, 'potential bylines');
 
-  // For each byline, try to extract the article
-  for (let i = 0; i < matches.length && articles.length < 10; i++) {
-    const bylineMatch = matches[i];
-    const bylineIndex = bylineMatch.index;
-    const author = bylineMatch[1];
+  // If we have multiple bylines, split the content around them
+  if (matches.length >= 2) {
+    for (let i = 0; i < matches.length - 1 && articles.length < 8; i++) {
+      const currentByline = matches[i];
+      const nextByline = matches[i + 1];
 
-    // Look backwards from the byline to find the title
-    let title = null;
-    const textBeforeByline = text.substring(0, bylineIndex);
+      const startIndex = currentByline.index + currentByline[0].length;
+      const endIndex = nextByline.index;
 
-    // Find the last sentence-ending punctuation before the byline (within 200 chars)
-    const relevantText = textBeforeByline.slice(-200);
-    const sentences = relevantText.split(/[.!?]/);
+      const articleText = text.substring(startIndex, endIndex).trim();
+      const author = currentByline[1];
 
-    // The title is likely the last complete sentence before the byline
-    if (sentences.length > 1) {
-      const potentialTitle = sentences[sentences.length - 2].trim();
-      if (potentialTitle.length >= 15 && potentialTitle.length <= 150 && /^[A-Z]/.test(potentialTitle)) {
-        title = potentialTitle;
-      }
-    }
+      // Get title from the text before the byline (last 200 chars)
+      const textBeforeByline = text.substring(0, currentByline.index).slice(-200);
+      const sentences = textBeforeByline.split(/[.!?]/);
+      let title = null;
 
-    if (!title) {
-      // Fallback: look for a capitalized phrase before the byline
-      const beforeByline = textBeforeByline.slice(-100);
-      const words = beforeByline.split(/\s+/);
-      for (let j = words.length - 1; j >= 0; j--) {
-        const phrase = words.slice(j).join(' ');
-        if (phrase.length >= 15 && phrase.length <= 150 && /^[A-Z]/.test(phrase)) {
-          title = phrase;
-          break;
+      if (sentences.length > 1) {
+        const potentialTitle = sentences[sentences.length - 2].trim();
+        if (potentialTitle.length >= 15 && potentialTitle.length <= 100) {
+          title = potentialTitle;
         }
       }
+
+      if (!title) {
+        // Fallback: use first line or a descriptive title
+        const firstLine = articleText.split('\n')[0];
+        if (firstLine && firstLine.length > 20) {
+          title = firstLine.substring(0, 80) + '...';
+        } else {
+          title = `Article by ${author}`;
+        }
+      }
+
+      if (articleText.length > 100) { // Only if substantial content
+        console.log(`API: Found article "${title}" by ${author}`);
+        articles.push(createArticleObject({
+          title: title,
+          author: author,
+          content: [articleText]
+        }, articles.length));
+      }
     }
 
-    if (!title) continue;
+    // Add the last article after the final byline
+    if (matches.length > 0) {
+      const lastByline = matches[matches.length - 1];
+      const lastArticleText = text.substring(lastByline.index + lastByline[0].length).trim();
 
-    // Extract content after the byline
-    const contentStart = bylineIndex + bylineMatch[0].length;
-    const remainingText = text.substring(contentStart);
+      if (lastArticleText.length > 100) {
+        const author = lastByline[1];
+        const title = `Article by ${author}`;
 
-    // Find where this article ends (next byline or major section break)
-    let contentEnd = remainingText.length;
-    const nextBylineMatch = matches[i + 1];
-    if (nextBylineMatch) {
-      contentEnd = nextBylineMatch.index - contentStart;
-    }
-
-    const articleContent = remainingText.substring(0, contentEnd).trim();
-    const paragraphs = articleContent.split('\n\n').filter(p => p.trim().length > 0);
-
-    if (paragraphs.length > 0) {
-      console.log(`API: Found article "${title}" by ${author} (${paragraphs.length} paragraphs)`);
-      articles.push(createArticleObject({
-        title: title,
-        author: author,
-        content: paragraphs
-      }, articles.length));
+        console.log(`API: Found final article "${title}" by ${author}`);
+        articles.push(createArticleObject({
+          title: title,
+          author: author,
+          content: [lastArticleText]
+        }, articles.length));
+      }
     }
   }
 
-  console.log('API: Found', articles.length, 'articles using byline pattern matching');
+  console.log('API: Found', articles.length, 'articles using byline splitting');
 
-  // If we didn't find enough articles, use the fallback chunking method
-  if (articles.length < 3) {
-    console.log('API: Not enough articles found, using fallback chunking');
+  // If we didn't find enough articles or no bylines, use the fallback chunking method
+  if (articles.length < 3 || matches.length === 0) {
+    console.log('API: Not enough articles or no bylines found, using fallback chunking');
     return createArticleChunks(text);
   }
 
