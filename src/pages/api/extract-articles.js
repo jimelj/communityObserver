@@ -123,71 +123,145 @@ export async function POST({ request }) {
 // Helper function to extract articles from PDF text
 function extractArticlesFromText(text) {
   const articles = [];
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   
-  // Try to split the text into articles based on common newspaper patterns
-  // Look for patterns like "By [Author]" which typically indicates article start
-  const articlePattern = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+([\w\s]+?)(?=By\s+[A-Z]|$)/gs;
+  console.log('API: Total non-empty lines:', lines.length);
+  console.log('API: First 20 lines:', lines.slice(0, 20));
   
-  // Also try to find article titles (lines that are all caps or title case followed by content)
-  const lines = text.split('\n');
-  let currentArticle = null;
+  let i = 0;
   let articleCount = 0;
   
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  while (i < lines.length && articleCount < 15) {
+    const line = lines[i];
     
-    // Skip empty lines
-    if (!line) continue;
+    // Skip common header/footer elements
+    if (isHeaderFooter(line)) {
+      i++;
+      continue;
+    }
     
-    // Check if this looks like an article title (longer than 10 chars, not all caps)
-    const isTitleLine = line.length > 15 && 
-                        line.length < 100 && 
-                        /[A-Z]/.test(line[0]) &&
-                        !line.match(/^\d+$/) &&
-                        !line.match(/^Page \d+/) &&
-                        !line.match(/^See\s+/);
+    // Check if this looks like a title (newspaper titles are usually bold/prominent)
+    // They typically:
+    // 1. Are 20-150 characters long
+    // 2. Start with a capital letter
+    // 3. Are followed within a few lines by "By [Author]" or content
+    // 4. Don't contain common non-title patterns
+    const looksLikeTitle = line.length >= 20 && 
+                           line.length <= 150 &&
+                           /^[A-Z]/.test(line) &&
+                           !line.match(/^(Page|See|Photo|Image|Figure|Table|Continue)/i) &&
+                           !line.match(/^\d/) &&
+                           !line.match(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i) &&
+                           !line.match(/^(January|February|March|April|May|June|July|August|September|October|November|December)/i);
     
-    // Check if next few lines contain "By [Author]"
-    const nextFewLines = lines.slice(i, i + 5).join(' ');
-    const hasAuthorLine = /By\s+[A-Z][a-z]+/.test(nextFewLines);
+    if (!looksLikeTitle) {
+      i++;
+      continue;
+    }
     
-    if (isTitleLine && hasAuthorLine && articleCount < 10) {
-      // This looks like the start of a new article
-      if (currentArticle && currentArticle.content.length > 50) {
-        // Save the previous article if it has substantial content
-        articles.push(createArticleObject(currentArticle, articleCount));
-        articleCount++;
+    // Look ahead to find "By [Author]" within next 10 lines
+    let authorLine = null;
+    let contentStartIndex = i + 1;
+    
+    for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+      const nextLine = lines[j];
+      
+      // Check for "By [Author Name]" pattern
+      const authorMatch = nextLine.match(/^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s+[A-Z][a-z]+)?)/);
+      if (authorMatch) {
+        authorLine = authorMatch[1];
+        contentStartIndex = j + 1;
+        break;
       }
       
-      // Start a new article
-      currentArticle = {
-        title: line,
-        content: [],
-        author: null
-      };
-    } else if (currentArticle) {
-      // Check if this is an author line
-      const authorMatch = line.match(/^By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
-      if (authorMatch && !currentArticle.author) {
-        currentArticle.author = authorMatch[1];
-      } else {
-        // Add to content
-        currentArticle.content.push(line);
+      // If we hit another title-like line, stop
+      if (nextLine.length >= 20 && /^[A-Z]/.test(nextLine) && !isHeaderFooter(nextLine)) {
+        break;
       }
     }
+    
+    // If no author found within reasonable distance, skip this potential title
+    if (!authorLine && line.length < 40) {
+      i++;
+      continue;
+    }
+    
+    // We found a title! Now extract the content
+    const title = line;
+    const author = authorLine || 'Community Observer Staff';
+    const content = [];
+    
+    // Collect content until we hit the next article title or end
+    let j = contentStartIndex;
+    while (j < lines.length) {
+      const contentLine = lines[j];
+      
+      // Stop if we hit another title
+      if (j > contentStartIndex + 3 && 
+          contentLine.length >= 20 && 
+          contentLine.length <= 150 &&
+          /^[A-Z]/.test(contentLine) &&
+          !isHeaderFooter(contentLine)) {
+        
+        // Check if this potential next title has a byline
+        let hasNextByline = false;
+        for (let k = j + 1; k < Math.min(j + 10, lines.length); k++) {
+          if (/^By\s+[A-Z]/.test(lines[k])) {
+            hasNextByline = true;
+            break;
+          }
+        }
+        
+        if (hasNextByline) {
+          break; // This is the next article
+        }
+      }
+      
+      // Skip header/footer lines in content
+      if (!isHeaderFooter(contentLine)) {
+        content.push(contentLine);
+      }
+      
+      j++;
+      
+      // Limit content to reasonable length (about 2000 words max)
+      if (content.join(' ').split(/\s+/).length > 2000) {
+        break;
+      }
+    }
+    
+    // Only save if we have substantial content (at least 50 words)
+    const wordCount = content.join(' ').split(/\s+/).length;
+    if (wordCount >= 50) {
+      console.log(`API: Found article "${title}" by ${author} (${wordCount} words)`);
+      articles.push(createArticleObject({
+        title: title,
+        author: author,
+        content: content
+      }, articleCount));
+      articleCount++;
+    }
+    
+    // Move to where we stopped collecting content
+    i = j;
   }
   
-  // Add the last article
-  if (currentArticle && currentArticle.content.length > 50) {
-    articles.push(createArticleObject(currentArticle, articleCount));
-  }
+  console.log('API: Found', articles.length, 'articles using title/byline detection');
   
-  // If we didn't find enough articles, create chunks
-  if (articles.length < 2) {
+  // If we didn't find any articles, try the fallback chunking method
+  if (articles.length === 0) {
+    console.log('API: No articles found, using fallback chunking');
     return createArticleChunks(text);
   }
   
   return articles;
+}
+
+// Helper to identify header/footer elements
+function isHeaderFooter(line) {
+  return line.match(/^(Page\s+\d+|VOL\.|www\.|Email|Phone|Copyright|©|\d{4}|September|October|November|Community Observer)/) ||
+         line.match(/^\d+$/) ||
+         line.length < 3;
 }
 
 function createArticleObject(articleData, index) {
