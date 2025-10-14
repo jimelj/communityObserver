@@ -5,6 +5,7 @@
   "description": "Community Observer newspaper website built with Astro",
   "scripts": {
     "dev": "astro dev",
+    "dev:log": "astro dev | tee tmp/extraction.log",
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",

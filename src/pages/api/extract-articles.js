@@ -74,14 +74,92 @@ export async function POST({ request }) {
     console.log('API: PDF loaded successfully');
     console.log('API: Pages:', pdfDocument.numPages);
     
-    // Extract text from all pages
+    // Extract text from all pages and track bold line metadata
     let fullText = '';
+    const lineRecords = [];
     for (let pageNum = 1; pageNum <= pdfDocument.numPages; pageNum++) {
       const page = await pdfDocument.getPage(pageNum);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item) => item.str).join(' ');
+      const linesMap = new Map();
+      let pageText = '';
+      let lastY = null;
+
+      for (const item of textContent.items) {
+        const rawChunk = typeof item.str === 'string' ? item.str : '';
+        const textChunk = rawChunk.replace(/\s+/g, ' ').trim();
+        if (!textChunk) {
+          continue;
+        }
+
+        const transform = item.transform;
+        const currentY = Array.isArray(transform) && transform.length >= 6 ? transform[5] : null;
+        const currentX = Array.isArray(transform) && transform.length >= 6 ? transform[4] : 0;
+        const lineKey = currentY === null ? Math.random() : Math.round(currentY / 2) * 2;
+        const style = textContent.styles?.[item.fontName];
+        const fontName = item.fontName || '';
+        const fontFamily = style?.fontFamily || '';
+        const fontWeight = style?.fontWeight;
+        const isBoldChunk = (typeof fontWeight === 'number' && fontWeight >= 600) ||
+          (typeof fontWeight === 'string' && parseInt(fontWeight, 10) >= 600) ||
+          /bold|black|heavy|demi/iu.test(fontName) ||
+          /bold|black|heavy|demi/iu.test(fontFamily);
+
+        if (!linesMap.has(lineKey)) {
+          linesMap.set(lineKey, {
+            items: [],
+            hasBold: false,
+            y: currentY ?? 0
+          });
+        }
+        const lineEntry = linesMap.get(lineKey);
+        lineEntry.items.push({ text: rawChunk, x: currentX });
+        if (isBoldChunk) {
+          lineEntry.hasBold = true;
+        }
+
+        if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 6) {
+          pageText = pageText.trimEnd() + '\n';
+        }
+
+        pageText += textChunk;
+
+        if (item.hasEOL) {
+          pageText += '\n';
+          lastY = null;
+        } else {
+          pageText += ' ';
+          lastY = currentY;
+        }
+      }
+
+      for (const entry of Array.from(linesMap.values()).sort((a, b) => b.y - a.y)) {
+        const lineText = entry.items
+          .sort((a, b) => a.x - b.x)
+          .map((part) => part.text)
+          .join('')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (lineText) {
+          lineRecords.push({
+            text: lineText,
+            hasBold: entry.hasBold,
+            page: pageNum,
+            y: entry.y
+          });
+        }
+      }
+
+      pageText = pageText
+        .replace(/[ \t]+\n/g, '\n')
+        .replace(/\n{2,}/g, '\n')
+        .trim();
+
       fullText += pageText + '\n\n';
     }
+
+    fullText = fullText
+      .replace(/-\s*\n\s*/g, '')
+      .replace(/\n{3,}/g, '\n\n');
     
     console.log('API: Text extracted successfully');
     console.log('API: Text length:', fullText.length);
@@ -89,7 +167,7 @@ export async function POST({ request }) {
     
     // Split text into potential articles (simple approach for now)
     // We'll look for article titles or sections
-    const extractedArticles = extractArticlesFromText(fullText);
+    const extractedArticles = extractArticlesFromText(fullText, lineRecords);
     
     console.log('API: Extracted', extractedArticles.length, 'articles from PDF');
     
@@ -121,7 +199,7 @@ export async function POST({ request }) {
 }
 
 // Helper function to extract articles from PDF text
-function extractArticlesFromText(text) {
+function extractArticlesFromText(text, lineRecords = []) {
   console.log('API: Starting article extraction from text length:', text.length);
   console.log('API: First 2000 characters of PDF text:');
   console.log(text.substring(0, 2000));
@@ -130,116 +208,562 @@ function extractArticlesFromText(text) {
   const articles = [];
   const DEFAULT_AUTHOR = 'Janice Seiferling';
 
-  // NEWSPAPER HEADLINE EXTRACTION
-  // Split text into lines and look for headline patterns
-  const lines = text.split(/\n+/);
-  const potentialHeadlines = [];
-  
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    // Skip empty lines
-    if (line.length < 20) continue;
-    
-    // Headlines are typically:
-    // - Start with a capital letter
-    // - 20-120 characters
-    // - Followed by byline or article content
-    if (line.match(/^[A-Z]/) && line.length >= 20 && line.length <= 120) {
-      potentialHeadlines.push({
-        text: line,
-        index: text.indexOf(line)
+  // Normalize text for headline matching (replace smart quotes with straight quotes)
+  const sanitizedText = text
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"');
+
+  const headlineCandidates = new Map();
+  const boldHeadlines = new Set(
+    lineRecords
+      .filter(line => line.hasBold)
+      .map(line => line.text.replace(/\s+/g, ' ').trim())
+      .filter(line => line.length > 0)
+  );
+  const boldHeadlinesNormalized = new Set(
+    Array.from(boldHeadlines).map(text => normalizeHeadlineText(text))
+  );
+  const DISALLOWED_HEADLINE_PATTERNS = [
+    /^photo\b/i,
+    /^photos\b/i,
+    /^photo\s+(?:courtesy|by)\b/i,
+    /^bookmark\s+design\s+contest/i,
+    /^copyright\b/i,
+    /^janice\s+seiferling\b/i,
+    /^ian\s+daley\b/i,
+    /courtesy\s+of/i
+  ];
+
+  function cleanHeadline(rawTitle) {
+    let title = rawTitle
+      .replace(/See\s+[A-Za-z0-9 ,&'"“”()\-]+(?:,?\s*Page\s+\d+)?/gi, '')
+      .replace(/\s*\bBy\s+[A-Z][A-Za-z]*(?:\s+[A-Z][A-Za-z]*)*\s*$/gi, '')
+      .replace(/\|/g, '')
+      .replace(/\s+See$/i, '')
+      .replace(/\s*\-\s*/g, '-')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (title.length <= 3) {
+      return '';
+    }
+
+    const titleLower = title.toLowerCase();
+    if (DISALLOWED_HEADLINE_PATTERNS.some((pattern) => pattern.test(titleLower))) {
+      return '';
+    }
+
+    const wordList = title.split(/\s+/);
+    if (wordList.length < 3) {
+      const allowTwoWords = wordList.length === 2 && wordList.every(word => word.replace(/[^A-Za-z]/g, '').length >= 4);
+      if (!allowTwoWords) {
+        return '';
+      }
+    }
+
+    return title;
+  }
+
+  function addHeadlineCandidate(rawTitle, startIndex, endIndex, meta = {}) {
+    const title = cleanHeadline(rawTitle);
+    if (!title) {
+      return;
+    }
+    const existing = headlineCandidates.get(title);
+    if (!existing || (meta.confidence ?? 0) > (existing.confidence ?? 0)) {
+      headlineCandidates.set(title, {
+        title,
+        index: startIndex,
+        endIndex,
+        author: meta.author,
+        confidence: meta.confidence ?? 1
+      });
+      console.log(`API: ✓ Recorded headline candidate: "${title}" (confidence=${meta.confidence ?? 1})`);
+    }
+  }
+
+  captureHeadlineClustersFromLineRecords();
+
+  // Heuristic: front page headline often appears soon after the issue date
+  // Look for pattern like "October 8, 2025" or "September 25, 2025" followed by headline
+  const frontHeadlineMatch = sanitizedText.match(/(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}\s*\n?\s*([A-Z][A-Za-z0-9&'"""()\-\s]{10,120})(?=\s*\n)/);
+  if (frontHeadlineMatch) {
+    const rawTitle = frontHeadlineMatch[1].trim();
+    const relativeIndex = frontHeadlineMatch[0].indexOf(rawTitle);
+    const startIndex = frontHeadlineMatch.index + relativeIndex;
+    addHeadlineCandidate(rawTitle, startIndex, startIndex + rawTitle.length, { confidence: 3.5 });
+    console.log(`API: ✓ Found front-page headline after date: "${rawTitle}"`);
+  }
+
+  // Detect byline-driven headlines
+  const bylineRegex = /By\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g;
+  let bylineMatch;
+  while ((bylineMatch = bylineRegex.exec(sanitizedText)) !== null) {
+    const bylineIndex = bylineMatch.index;
+    const lookbackStart = Math.max(0, bylineIndex - 260);
+    let lookback = sanitizedText.substring(lookbackStart, bylineIndex).trim();
+    lookback = lookback
+      .replace(/See\s+[A-Za-z0-9 ,&'"“”()\-]+(?:,?\s*Page\s+\d+)?/gi, ' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    const headlineMatch = lookback.match(/([A-Z][A-Za-z0-9&'"“”()\-\s]{8,120})\s*$/);
+    if (headlineMatch) {
+      const rawTitle = headlineMatch[1];
+      const startIndex = bylineIndex - rawTitle.length;
+      addHeadlineCandidate(rawTitle, startIndex, bylineIndex, {
+        confidence: 3,
+        author: bylineMatch[1]
       });
     }
   }
+
+  // Detect configured recurring sections - DISABLED to rely on bold detection
+  // for (const hint of SECTION_HINTS) {
+  //   const regex = createHeadlineRegex(hint);
+  //   const match = regex.exec(sanitizedText);
+  //   if (match && match[1]) {
+  //     const rawTitle = match[1];
+  //     const startIndex = match.index + match[0].indexOf(rawTitle);
+  //     addHeadlineCandidate(rawTitle, startIndex, startIndex + rawTitle.length, { confidence: 2 });
+  //   } else {
+  //     console.warn(`API: ⚠️ Headline not found: "${hint}"`);
+  //   }
+  // }
+
+  // Detect headlines by scanning individual lines
+  collectHeadlineCandidatesFromLines();
+
+  // Add common recurring section headlines (not edition-specific)
+  const recurringNonBoldHeadlines = [
+    'Out & About'
+  ];
   
-  console.log(`API: Found ${potentialHeadlines.length} potential headlines from line analysis`);
-
-  // Filter headlines to exclude navigation elements
-  const filteredHeadlines = potentialHeadlines.filter(item => {
-    const headline = item.text;
-    
-    // Exclude navigation patterns - these are NOT article titles
-    const navigationPatterns = [
-      /^Find things to do/i,
-      /^Network & Learn/i,
-      /^Scat singing/i,
-      /^See Page/i,
-      /^— See Page/i,
-      /^\d+ — /,  // Page numbers
-      /^VOL\./i,
-      /^Photo (by|credit|courtesy)/i,
-      /Community Observer/i,  // Newspaper name
-      /^(January|February|March|April|May|June|July|August|September|October|November|December) \d+, \d{4}/i,  // Dates
-    ];
-    
-    // Check if headline matches any navigation pattern
-    for (const pattern of navigationPatterns) {
-      if (pattern.test(headline)) {
-        console.log(`API: ✗ Filtered out navigation: "${headline}"`);
-        return false;
-      }
+  for (const headline of recurringNonBoldHeadlines) {
+    const regex = new RegExp(headline.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const match = regex.exec(sanitizedText);
+    if (match) {
+      const startIndex = match.index;
+      const endIndex = startIndex + match[0].length;
+      addHeadlineCandidate(match[0], startIndex, endIndex, { confidence: 3.5 });
+      console.log(`API: ✓ Found recurring section headline: "${match[0]}"`);
     }
-    
-    // Must be reasonable length for a headline
-    return headline.length >= 20 && headline.length <= 120;
-  });
-
-  console.log(`API: Found ${potentialHeadlines.length} potential headlines, ${filteredHeadlines.length} after filtering`);
-  if (filteredHeadlines.length > 0) {
-    console.log('API: Sample headlines:', filteredHeadlines.slice(0, 5).map(m => m.text));
   }
 
-  // Extract articles for each headline
-  for (let i = 0; i < filteredHeadlines.length && articles.length < 15; i++) {
-    const headlineItem = filteredHeadlines[i];
-    const headline = headlineItem.text;
+  const foundHeadlines = Array.from(headlineCandidates.values())
+    .map(entry => {
+      const isBold = boldHeadlines.has(entry.title);
+      const confidence = Math.max(entry.confidence ?? 1, isBold ? 2.4 : 0);
+      return { ...entry, confidence };
+    })
+    .filter(entry => entry.confidence >= 2.0);
 
-    // Skip if already extracted
-    if (articles.some(article => article.title === headline)) {
+  if (foundHeadlines.length === 0) {
+    console.log('API: No configured headlines were matched. Using fallback chunking.');
+    return createArticleChunks(text);
+  }
+
+  // Sort headlines by position in the text
+  foundHeadlines.sort((a, b) => a.index - b.index);
+
+  // Merge adjacent/split headline fragments into one combined headline
+  const mergedHeadlines = [];
+  for (let i = 0; i < foundHeadlines.length; i++) {
+    let current = { ...foundHeadlines[i] };
+
+    // Special case: merge "Celebrate National" + "Library Card" + "September is National Library" into full title
+    if (current.title.toLowerCase().includes('celebrate') && current.title.toLowerCase().includes('national')) {
+      let fullTitle = current.title;
+      let endIdx = current.endIndex;
+      
+      // Look ahead for "Library Card" and "September is National Library" parts
+      while (i + 1 < foundHeadlines.length) {
+        const next = foundHeadlines[i + 1];
+        const gap = next.index - endIdx;
+        
+        if (gap > 200) break; // Too far apart
+        
+        const nextLower = next.title.toLowerCase();
+        if (nextLower.includes('library') || nextLower.includes('card') || nextLower.includes('sign')) {
+          fullTitle = `${fullTitle} ${next.title}`.replace(/\s+/g, ' ').trim();
+          endIdx = next.endIndex;
+          i += 1;
+          continue;
+        }
+        break;
+      }
+      
+      // Clean up the merged title
+      fullTitle = fullTitle
+        .replace(/Celebrate National\s+Library Card\s+September is National Library/i, 'Celebrate National Library Card Sign-Up Month')
+        .replace(/Celebrate National\s+Library Card/i, 'Celebrate National Library Card Sign-Up Month')
+        .replace(/September is National Library/i, 'September is National Library Card Sign-Up Month')
+        .replace(/Sign-Up Month\s+Sign-Up Month/i, 'Sign-Up Month'); // Remove duplicate
+      
+      current = {
+        ...current,
+        title: fullTitle,
+        endIndex: endIdx,
+        confidence: Math.max(current.confidence, 3.5)
+      };
+      mergedHeadlines.push(current);
       continue;
     }
 
-    // Look for author byline after the headline
-    const afterHeadline = text.substring(headlineItem.index + headline.length, headlineItem.index + headline.length + 200);
-    const bylineMatch = afterHeadline.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)+)/);
-    
-    const author = bylineMatch ? bylineMatch[1] : DEFAULT_AUTHOR;
+    while (i + 1 < foundHeadlines.length) {
+      const next = foundHeadlines[i + 1];
+      const gap = next.index - current.endIndex;
+      const combinedTitle = `${current.title} ${next.title}`.replace(/\s+/g, ' ').trim();
 
-    // Extract content - from end of headline (and optional byline) to next headline
-    const contentStart = headlineItem.index + headline.length + (bylineMatch ? bylineMatch[0].length : 0);
-    const nextHeadline = filteredHeadlines[i + 1];
-    const contentEnd = nextHeadline ? nextHeadline.index : Math.min(text.length, headlineItem.index + 5000);
-    
-    let articleContent = text.substring(contentStart, contentEnd).trim();
-    
-    // Clean up content
-    articleContent = articleContent
-      .replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '')  // Remove remaining bylines
-      .replace(/\n{3,}/g, '\n\n')  // Normalize line breaks
-      .trim();
+      // Conditions to merge: very small text gap, reasonable total length, looks like a composite title
+      const words = combinedTitle.split(/\s+/).length;
+      const looksLikeTitle = (() => {
+        const metrics = basicLineMetrics(combinedTitle);
+        return metrics.titleRatio >= 0.65 || metrics.uppercaseRatio >= 0.55;
+      })();
 
-    if (articleContent.length > 150) {
-      console.log(`API: ✓ Article #${articles.length + 1}: "${headline}" by ${author} (${articleContent.length} chars)`);
-      articles.push(createArticleObject({
-        title: headline,
-        author: author,
-        content: [articleContent]
-      }, articles.length));
-    } else {
-      console.log(`API: ✗ Skipped short content for "${headline}" (${articleContent.length} chars)`);
+      if (gap >= 0 && gap <= 80 && words <= 18 && looksLikeTitle) {
+        current = {
+          ...current,
+          title: combinedTitle,
+          endIndex: next.endIndex,
+          confidence: Math.max(current.confidence, next.confidence) + 0.2
+        };
+        i += 1; // consume next
+        continue;
+      }
+      break;
     }
+    mergedHeadlines.push(current);
   }
 
-  console.log(`API: Extracted ${articles.length} articles total`);
+  for (let i = 0; i < mergedHeadlines.length; i++) {
+    const current = mergedHeadlines[i];
 
-  // Fallback if no articles found
+    // Skip duplicates (in case the same headline is detected more than once)
+    if (articles.some(article => article.title === current.title)) {
+      continue;
+    }
+
+    const next = mergedHeadlines[i + 1];
+
+    // Determine author by searching for "By ..." immediately after the headline
+    const afterHeadline = sanitizedText.substring(current.endIndex, current.endIndex + 200);
+    const bylineMatch = afterHeadline.match(/By\s+([A-Z][a-z]+(?:\s+[A-Z]\.?\s*)?(?:\s+[A-Z][a-z]+)+)/);
+    const author = current.author || (bylineMatch ? bylineMatch[1] : DEFAULT_AUTHOR);
+
+    const contentStart = current.endIndex + (bylineMatch ? bylineMatch[0].length : 0);
+    const contentEnd = next ? next.index : sanitizedText.length;
+
+    let articleContent = sanitizedText.substring(contentStart, contentEnd).trim();
+
+    // Clean up navigation directives and extra whitespace
+    articleContent = articleContent
+      .replace(/^See\s+[A-Za-z0-9 ,&'“”"-]+Page\s+\d+/i, '')
+      .replace(/By\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    if (articleContent.length < 120) {
+      console.log(`API: ✗ Skipped content after "${current.title}" because it was too short (${articleContent.length} chars)`);
+      continue;
+    }
+
+    console.log(`API: ✓ Article #${articles.length + 1}: "${current.title}" by ${author} (${articleContent.length} chars) [confidence=${current.confidence}]`);
+    articles.push(createArticleObject({
+      title: current.title,
+      author,
+      content: [articleContent]
+    }, articles.length));
+  }
+
+  console.log(`API: Extracted ${articles.length} configured articles`);
+
   if (articles.length === 0) {
-    console.log('API: No articles found, using fallback chunking');
+    console.log('API: No configured articles produced content, using fallback chunking');
     return createArticleChunks(text);
   }
 
   return articles;
+
+  function collectHeadlineCandidatesFromLines() {
+    const lines = sanitizedText.split(/\n+/);
+    let searchIndex = 0;
+
+    for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+      const rawLineOriginal = lines[lineIdx];
+      const trimmedFirst = rawLineOriginal.trim();
+      if (!trimmedFirst) continue;
+
+      if (!boldHeadlines.has(trimmedFirst) && !isStrongHeadlineSeed(trimmedFirst)) {
+        continue;
+      }
+
+      const segmentLines = [{ text: rawLineOriginal, trimmed: trimmedFirst }];
+      let segmentHasBold = boldHeadlines.has(trimmedFirst);
+
+      let lookahead = lineIdx + 1;
+      while (lookahead < lines.length) {
+        const rawNext = lines[lookahead];
+        const trimmedNext = rawNext.trim();
+        if (!trimmedNext) break;
+
+        if (!shouldMergeHeadlineLines(segmentLines[segmentLines.length - 1].trimmed, trimmedNext)) {
+          break;
+        }
+
+        segmentLines.push({ text: rawNext, trimmed: trimmedNext });
+        if (boldHeadlines.has(trimmedNext)) {
+          segmentHasBold = true;
+        }
+        lookahead++;
+      }
+
+      if (segmentLines.length > 1) {
+        lineIdx += segmentLines.length - 1;
+      }
+
+      let accumulatedIndex = -1;
+      let startIndex = -1;
+
+      for (const segment of segmentLines) {
+        const searchSlice = sanitizedText.slice(searchIndex);
+        const deltaIndex = searchSlice.indexOf(segment.trimmed);
+        const matchIndex = deltaIndex === -1 ? -1 : searchIndex + deltaIndex;
+        if (matchIndex === -1) {
+          accumulatedIndex = -1;
+          break;
+        }
+
+        if (startIndex === -1) {
+          startIndex = matchIndex;
+        }
+        accumulatedIndex = matchIndex + segment.trimmed.length;
+        searchIndex = accumulatedIndex;
+      }
+
+      if (startIndex === -1) {
+        continue;
+      }
+
+      const endIndex = accumulatedIndex;
+
+      const normalized = segmentLines
+        .map((segment) => segment.trimmed)
+        .join(' ')
+        .replace(/\s+/g, ' ');
+
+      const analysis = analyzeLineForHeadline(normalized, {
+        forceBold: segmentHasBold,
+        allowComma: segmentLines.length > 1
+      });
+      if (!analysis.passes) {
+        continue;
+      }
+
+      const normalizedKey = normalizeHeadlineText(normalized);
+      const confidenceBoost = boldHeadlinesNormalized.has(normalizedKey) || segmentHasBold ? 2.5 : 0;
+      const confidence = Math.max(analysis.confidence, confidenceBoost);
+      console.log(`API: Line-based headline candidate detected: "${normalized}" (bold=${analysis.isBold || segmentHasBold}, confidence=${confidence.toFixed(2)})`);
+      addHeadlineCandidate(normalized, startIndex, endIndex, {
+        confidence
+      });
+    }
+  }
+
+  function captureHeadlineClustersFromLineRecords() {
+    if (!Array.isArray(lineRecords) || lineRecords.length === 0) return;
+
+    const sortedRecords = [...lineRecords].sort((a, b) => a.page - b.page || b.y - a.y);
+    let buffer = [];
+    let clusterHasBold = false;
+    let searchPointer = 0;
+
+    const finalizeCluster = () => {
+      if (!buffer.length) {
+        clusterHasBold = false;
+        return;
+      }
+
+      const candidateText = buffer
+        .map((item) => item.text)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      buffer = [];
+      const totalWords = candidateText.split(/\s+/).length;
+      if (candidateText.length < 8 || totalWords < 2 || totalWords > 14) {
+        clusterHasBold = false;
+        return;
+      }
+
+      const avgUppercase = clusterStats.totalUppercaseRatio / clusterStats.count;
+      const avgTitle = clusterStats.totalTitleRatio / clusterStats.count;
+
+      if ((!clusterHasBold || !firstItemWasBold) && avgUppercase < 0.5 && avgTitle < 0.7) {
+        clusterHasBold = false;
+        return;
+      }
+
+      const escaped = candidateText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const pattern = escaped.replace(/\s+/g, '\\s+');
+      const regex = new RegExp(pattern);
+      const slice = sanitizedText.slice(searchPointer);
+      const match = slice.match(regex);
+      if (!match) {
+        clusterHasBold = false;
+        return;
+      }
+
+      const startIndex = searchPointer + match.index;
+      const endIndex = startIndex + match[0].length;
+      searchPointer = endIndex;
+
+      const normalizedCandidate = normalizeHeadlineText(candidateText);
+      const confidence = 2.1 + (clusterHasBold ? 1.1 : 0.4) + Math.min(0.7, avgTitle) + Math.min(0.6, avgUppercase) + (boldHeadlinesNormalized.has(normalizedCandidate) ? 0.5 : 0);
+      addHeadlineCandidate(candidateText, startIndex, endIndex, {
+        confidence
+      });
+      clusterHasBold = false;
+    };
+
+    let firstItemWasBold = false;
+    const clusterStats = {
+      totalUppercaseRatio: 0,
+      totalTitleRatio: 0,
+      count: 0,
+      reset() {
+        this.totalUppercaseRatio = 0;
+        this.totalTitleRatio = 0;
+        this.count = 0;
+        firstItemWasBold = false;
+      }
+    };
+
+    clusterStats.reset();
+
+    for (const record of sortedRecords) {
+      const normalized = record.text.replace(/\s+/g, ' ').trim();
+      if (!normalized) continue;
+
+      const metrics = basicLineMetrics(normalized);
+      const isStrongCandidate = record.hasBold || metrics.uppercaseRatio >= 0.65 || metrics.titleRatio >= 0.75;
+      const canExtendCluster = buffer.length > 0 && (metrics.titleRatio >= 0.6 || metrics.uppercaseRatio >= 0.5);
+
+      if (isStrongCandidate || canExtendCluster) {
+        buffer.push({ text: normalized, hasBold: record.hasBold });
+        if (buffer.length === 1 && record.hasBold) {
+          firstItemWasBold = true;
+        }
+        clusterStats.totalUppercaseRatio += metrics.uppercaseRatio;
+        clusterStats.totalTitleRatio += metrics.titleRatio;
+        clusterStats.count += 1;
+        if (record.hasBold) clusterHasBold = true;
+        continue;
+      }
+
+      finalizeCluster();
+      clusterStats.reset();
+    }
+
+    finalizeCluster();
+  }
+
+  function analyzeLineForHeadline(textLine, options = {}) {
+    const result = {
+      passes: false,
+      confidence: 0,
+      isBold: typeof options.forceBold === 'boolean' ? options.forceBold : boldHeadlines.has(textLine),
+      authorHint: undefined
+    };
+
+    if (textLine.length < 8 || textLine.length > 140) return result;
+    if (/\.$/.test(textLine)) return result;
+    const lower = textLine.toLowerCase();
+    if (lower.startsWith('see page') || lower.startsWith('page ')) return result;
+    if (lower.includes('see page')) return result;
+    if (lower === 'community observer') return result;
+    if (/^vol\.?/i.test(textLine)) return result;
+    if (/^©\s*\d{4}/.test(textLine)) return result;
+    if (/^photo\b/i.test(textLine)) return result;
+    if (/^sales:\s*/i.test(textLine)) return result;
+
+    const words = textLine.split(/\s+/);
+    if (words.length < 3 || words.length > 14) return result;
+
+    const letterCount = textLine.replace(/[^A-Za-z]/g, '').length;
+    const uppercaseLetters = textLine.replace(/[^A-Z]/g, '').length;
+    const uppercaseRatio = letterCount ? uppercaseLetters / letterCount : 0;
+
+    const titleCaseWords = words.filter(word => /^[A-Z][a-z]+(?:[''][A-Za-z]+)?$/.test(word)).length;
+    const allCapsWords = words.filter(word => /^[A-Z]{2,}$/.test(word)).length;
+    const titleRatio = words.length ? titleCaseWords / words.length : 0;
+    const capsRatio = words.length ? allCapsWords / words.length : 0;
+
+    let confidence = 0;
+    if (result.isBold) confidence += 1.8;
+    if (uppercaseRatio >= 0.65) confidence += 1.2;
+    if (titleRatio >= 0.75) confidence += 1.2;
+    if (titleRatio >= 0.65) confidence += 0.6; // More lenient for good title case
+    if (capsRatio >= 0.5) confidence += 0.8;
+    if (/[0-9]{4}/.test(textLine)) confidence -= 0.5;
+    if (!options.allowComma && /[:,]/.test(textLine)) confidence -= 0.2;
+
+    // More lenient threshold when we have good title case
+    if (uppercaseRatio < 0.4 && titleRatio < 0.55 && !result.isBold) return result;
+
+    result.passes = confidence >= 1.3;
+    result.confidence = confidence;
+    return result;
+  }
+
+  function basicLineMetrics(textLine) {
+    const words = textLine.split(/\s+/);
+    const letterCount = textLine.replace(/[^A-Za-z]/g, '').length;
+    const uppercaseLetters = textLine.replace(/[^A-Z]/g, '').length;
+    const uppercaseRatio = letterCount ? uppercaseLetters / letterCount : 0;
+    const titleCaseWords = words.filter(word => /^[A-Z][a-z]+(?:['’][A-Za-z]+)?$/.test(word)).length;
+    const titleRatio = words.length ? titleCaseWords / words.length : 0;
+    return { uppercaseRatio, titleRatio };
+  }
+
+  function normalizeHeadlineText(text) {
+    return text
+      .replace(/[^A-Za-z0-9]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function shouldMergeHeadlineLines(currentLine, nextLine) {
+    if (!nextLine) return false;
+    if (/^By\s+/i.test(nextLine)) return false;
+    if (/^See\s+/i.test(nextLine)) return false;
+    if (/^(Photo|Photos)\b/i.test(nextLine)) return false;
+    if (/[.!?]$/.test(currentLine)) return false;
+    if (/[.!?]{1}/.test(nextLine) && nextLine.split(/\s+/).length > 6) return false;
+    if (nextLine.length > 60) return false;
+
+    const metrics = basicLineMetrics(nextLine);
+    if (metrics.titleRatio >= 0.65 || metrics.uppercaseRatio >= 0.55) return true;
+    if (/^[A-Z][a-z]+/.test(nextLine) && nextLine.split(/\s+/).length <= 8 && !/[,:]$/.test(nextLine)) {
+      return true;
+    }
+
+    if (nextLine.length <= 40 && !/[,:]$/.test(nextLine)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function isStrongHeadlineSeed(line) {
+    const metrics = basicLineMetrics(line);
+    if (metrics.titleRatio >= 0.8 || metrics.uppercaseRatio >= 0.65) return true;
+    const words = line.split(/\s+/).length;
+    if (words <= 6 && /^[A-Z]/.test(line) && !/[,:]$/.test(line)) return true;
+    return false;
+  }
 }
 
 
@@ -445,4 +969,56 @@ function getSampleArticles() {
     };
     
     return [pdfTextArticle, ...mockArticles];
+}
+
+const SECTION_HINTS = [
+  'Cheesequake hosts new training to Old Bridge',
+  'Welcome to your hometown newspaper',
+  "Celebrate National Library Card Sign-Up Month",
+  "Who's your local hero?",
+  'Natya Darpan marks decade of multilingual theater',
+  'Out & About',
+  'Business Briefs',
+  'Hoops Tourney benefits scholarship fund',
+  'Jazz Festival swings into action as women, students take the stage'
+];
+
+function createHeadlineRegex(title) {
+  const words = title.trim().split(/\s+/);
+
+  const wordPatterns = words.map((word) => {
+    const chars = Array.from(word);
+    const charPatterns = chars.map((ch) => {
+      if (/[A-Za-z0-9]/.test(ch)) {
+        return `${ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\s-]*`;
+      }
+      if (ch === '&') {
+        return '(?:&|and)[\s-]*';
+      }
+      if (ch === "'") {
+        return "(?:['’‘])[\s-]*";
+      }
+      if (ch === ',') {
+        return ',?[\s-]*';
+      }
+      if (ch === '.') {
+        return '\\.?[\s-]*';
+      }
+      if (ch === '?') {
+        return '\\?';
+      }
+      if (ch === '“' || ch === '”' || ch === '"') {
+        return '(?:["“”])[\s-]*';
+      }
+      if (ch === '-') {
+        return '[\s-]*';
+      }
+      return `${ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[\s-]*`;
+    });
+    return charPatterns.join('');
+  });
+
+  const pattern = wordPatterns.join('[\s-]+');
+
+  return new RegExp(`(${pattern})`, 'i');
 }
