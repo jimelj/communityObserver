@@ -3,7 +3,12 @@
 export const prerender = false;
 
 import { writeFile, mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 export async function POST({ request }) {
   try {
@@ -67,7 +72,7 @@ export async function POST({ request }) {
             const ext = match[2] === 'jpeg' ? 'jpg' : match[2].toLowerCase();
             const base64Data = match[3];
             const buffer = Buffer.from(base64Data, 'base64');
-            const imagesDir = join(process.cwd(), 'public', 'images', 'extracted');
+            const imagesDir = join(projectRoot, 'public', 'images', 'extracted');
             await mkdir(imagesDir, { recursive: true });
             const imageFileName = `${slug}-${Date.now()}.${ext}`;
             const imageFilePath = join(imagesDir, imageFileName);
@@ -78,7 +83,7 @@ export async function POST({ request }) {
         }
 
         // Determine file path for article JSON
-        const articlesDir = join(process.cwd(), 'src', 'data', 'articles');
+        const articlesDir = join(projectRoot, 'src', 'data', 'articles');
         const filePath = join(articlesDir, `${slug}.json`);
         
         // Write the JSON file

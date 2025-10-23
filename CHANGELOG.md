@@ -1,5 +1,144 @@
 # Changelog
 
+## [1.8.0] - 2025-10-23
+
+### 🚀 Major Features
+
+#### **Admin Panel for Article Management**
+- **Local admin server**: Created standalone admin server (port 3000) for article management
+- **PDF article extraction**: Automated extraction of articles from newspaper PDFs
+- **Manual photo selection**: User-controlled image assignment for extracted articles
+- **Article management interface**: Complete CRUD operations for published articles
+- **Admin-only access**: Removed extract-articles from public website
+
+#### **PDF Processing System**
+- **Server-side image extraction**: Uses pdfimages for reliable image extraction including JPEG2000
+- **Intelligent text extraction**: Headline detection and article boundary recognition
+- **Multi-page support**: Processes entire newspaper PDFs automatically
+- **Metadata extraction**: Automatic detection of titles, authors, dates, and content
+
+#### **Article Publishing Workflow**
+- **Review and edit**: Preview extracted articles before publishing
+- **Photo selection modal**: Choose correct images from extracted photos
+- **Batch publishing**: Publish multiple articles at once
+- **Article cards**: Visual preview of articles with thumbnails
+
+#### **Article Management System**
+- **List all articles**: View all published articles with metadata
+- **Edit functionality**: Update article content, images, metadata
+- **Delete articles**: Remove published articles with confirmation
+- **Image management**: Assign, change, or remove article images
+
+### 🔧 Technical Improvements
+
+#### **Admin Server Architecture**
+- **Express.js backend**: Standalone admin server with dynamic API routes
+- **Fetch API pattern**: Consistent request/response handling
+- **File upload support**: Multer integration for PDF uploads
+- **Static file serving**: Serves images and assets for admin interface
+
+#### **API Endpoints**
+- **Extract articles**: POST `/api/extract-articles` - Process PDF and extract articles
+- **Publish articles**: POST `/api/publish-articles` - Save articles to JSON files
+- **List articles**: GET `/api/list-articles` - Retrieve all published articles
+- **Update article**: POST `/api/update-article` - Edit existing articles
+- **Delete article**: POST `/api/delete-article` - Remove articles
+- **Copy image**: POST `/api/copy-article-image` - Copy temp images to permanent location
+- **Cleanup**: POST `/api/cleanup-temp-images` - Remove temporary extraction files
+- **Serve images**: GET `/api/serve-image/*` - Serve images with proper headers
+
+#### **File Structure**
+- **Organized admin directory**: All admin code in `/admin/` folder
+- **API separation**: Admin APIs in `/admin/api/`, public APIs in `/src/pages/api/`
+- **Temporary files**: Automatic cleanup of extraction temporary files
+- **Image serving**: Proper image serving with content-type headers
+
+### 🎨 UI/UX Improvements
+
+#### **Admin Interface Design**
+- **Consistent branding**: Matches Community Observer design system
+- **Professional layout**: Clean, modern admin interface
+- **Responsive design**: Works on all screen sizes
+- **Navigation tabs**: Easy switching between Extract and Manage Articles
+- **Modal dialogs**: Edit and delete confirmations with forms
+
+#### **Article Cards**
+- **Visual previews**: Thumbnail images with article metadata
+- **Featured indicators**: Star icon for featured articles
+- **Category badges**: Color-coded category labels
+- **Tag display**: Show article tags
+- **Action buttons**: Edit and Delete for each article
+
+#### **Photo Selection**
+- **Grid layout**: Visual thumbnail grid for photo selection
+- **Image preview**: Click to select photos for articles
+- **Change/remove**: Easily update or remove assigned photos
+- **Temporary images**: Access to all extracted images
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `/admin/index.html` - Extract articles interface
+- `/admin/manage-articles.html` - Article management interface
+- `/admin/server.js` - Express server for admin panel
+- `/admin/api/extract-articles.js` - PDF extraction endpoint
+- `/admin/api/publish-articles.js` - Article publishing endpoint
+- `/admin/api/list-articles.js` - List articles endpoint
+- `/admin/api/update-article.js` - Update article endpoint
+- `/admin/api/delete-article.js` - Delete article endpoint
+- `/admin/api/copy-article-image.js` - Copy image endpoint
+- `/admin/api/cleanup-temp-images.js` - Cleanup endpoint
+- `/admin/api/serve-image.js` - Image serving endpoint
+- `package.json` - Added `admin` script for admin server
+
+#### **Removed Files**
+- `/src/pages/extract-articles.astro` - Moved to admin-only
+- `/src/pages/api/extract-articles.js` - Moved to admin panel
+
+#### **Updated Files**
+- `CHANGELOG.md` - Added version 1.8.0 documentation
+
+### 🎯 Benefits
+
+- **Streamlined workflow**: Extract articles from PDF in minutes instead of hours
+- **Professional tooling**: Admin panel for managing all published content
+- **Security**: Admin tools not accessible to public users
+- **Efficiency**: Automated extraction saves significant time
+- **Flexibility**: Manual photo selection ensures accuracy
+- **Maintainability**: Easy to update or remove published articles
+- **User-friendly**: Visual interface for all admin operations
+
+### 📋 Admin Workflow
+
+#### **Extract and Publish Articles**
+1. Upload newspaper PDF to admin panel
+2. System extracts articles and images automatically
+3. Review extracted articles and select photos
+4. Publish selected articles to website
+5. Articles appear on public website immediately
+
+#### **Manage Published Articles**
+1. View all published articles in admin panel
+2. Click "Edit" to update article content or metadata
+3. Change article images using photo selection modal
+4. Delete articles with confirmation dialog
+5. Changes reflect immediately on public website
+
+### 🚀 Getting Started
+
+#### **Running the Admin Server**
+```bash
+npm run admin
+```
+
+Admin panel available at: `http://localhost:3000/admin`
+
+#### **Admin Pages**
+- **Extract Articles**: `/admin/` - Upload and extract from PDFs
+- **Manage Articles**: `/admin/manage-articles.html` - Edit/delete published articles
+
+---
+
 ## [1.7.0] - 2025-10-14
 
 ### 🚀 Major Features

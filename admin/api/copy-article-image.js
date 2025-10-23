@@ -1,8 +1,14 @@
-import { copyFile, existsSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { copyFile, existsSync, mkdir } from 'node:fs';
+import { join, basename, dirname } from 'node:path';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'url';
 
 const copyFileAsync = promisify(copyFile);
+const mkdirAsync = promisify(mkdir);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 // Disable prerendering for this dynamic route
 export const prerender = false;
@@ -32,11 +38,17 @@ export async function POST({ request }) {
       });
     }
 
-    // Construct full paths
-    const tempFullPath = join(process.cwd(), 'public', tempImagePath.substring(1));
+    // Construct full paths using project root
+    const tempFullPath = join(projectRoot, 'public', tempImagePath.substring(1));
     const filename = basename(tempImagePath);
-    const permanentPath = join(process.cwd(), 'public', 'images', 'articles', filename);
+    const permanentDir = join(projectRoot, 'public', 'images', 'articles');
+    const permanentPath = join(permanentDir, filename);
     const permanentWebPath = `/images/articles/${filename}`;
+
+    // Ensure permanent directory exists
+    if (!existsSync(permanentDir)) {
+      await mkdirAsync(permanentDir, { recursive: true });
+    }
 
     // Check if temp file exists
     if (!existsSync(tempFullPath)) {

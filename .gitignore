@@ -45,6 +45,7 @@ public/images/articles/*.jpeg
 public/pdfjs/
 temp-pdf-extract/
 src/data/articles/*.json
+admin/public/
 
 # Keep lockfiles committed
 !package-lock.json

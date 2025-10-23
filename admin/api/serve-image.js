@@ -1,6 +1,11 @@
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 // Disable prerendering for this dynamic route
 export const prerender = false;
@@ -27,7 +32,7 @@ export async function GET({ params }) {
 
   // Remove leading slash and construct full path
   const relativePath = imagePath.substring(1); // Remove leading /
-  const fullPath = join(process.cwd(), 'public', relativePath);
+  const fullPath = join(projectRoot, 'public', relativePath);
 
   console.log('  Full disk path:', fullPath);
 

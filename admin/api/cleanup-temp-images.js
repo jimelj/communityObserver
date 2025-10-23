@@ -1,17 +1,22 @@
 import { rm, readdir, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { promisify } from 'node:util';
+import { fileURLToPath } from 'url';
 
 const rmAsync = promisify(rm);
 const readdirAsync = promisify(readdir);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 // Disable prerendering for this dynamic route
 export const prerender = false;
 
 export async function POST({ request }) {
   try {
-    const extractedDir = join(process.cwd(), 'public', 'images', 'extracted');
-    const tempPdfDir = join(process.cwd(), 'temp-pdf-extract');
+    const extractedDir = join(projectRoot, 'public', 'images', 'extracted');
+    const tempPdfDir = join(projectRoot, 'temp-pdf-extract');
 
     let deletedCount = 0;
     const deletedDirs = [];

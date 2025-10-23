@@ -4,11 +4,16 @@ export const prerender = false;
 
 import { writeFile, mkdir, readdir, readFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { fileURLToPath } from 'url';
 
 const execAsync = promisify(exec);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..');
 
 export async function POST({ request }) {
   try {
@@ -1089,8 +1094,8 @@ function createHeadlineRegex(title) {
 // Function to extract images from PDF
 async function extractImagesFromPDF(pdfDocument, uint8Array) {
   const extractedImages = [];
-  const outputDir = join(process.cwd(), 'public', 'images', 'extracted');
-  const tempDir = join(process.cwd(), 'temp-pdf-extract');
+  const outputDir = join(projectRoot, 'public', 'images', 'extracted');
+  const tempDir = join(projectRoot, 'temp-pdf-extract');
 
   // Ensure directories exist
   if (!existsSync(outputDir)) {
