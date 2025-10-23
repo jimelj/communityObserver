@@ -39,12 +39,8 @@ coverage/
 
 # ----- PDF Extraction -----
 public/images/extracted/
-public/images/articles/*.png
-public/images/articles/*.jpg
-public/images/articles/*.jpeg
 public/pdfjs/
 temp-pdf-extract/
-src/data/articles/*.json
 admin/public/
 
 # Keep lockfiles committed
