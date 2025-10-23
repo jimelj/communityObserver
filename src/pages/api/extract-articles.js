@@ -2,6 +2,14 @@
 // Mark this endpoint as server-rendered (not pre-rendered)
 export const prerender = false;
 
+import { writeFile, mkdir, readdir, readFile, unlink } from 'fs/promises';
+import { existsSync } from 'fs';
+import { join } from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
 export async function POST({ request }) {
   try {
     console.log('API: Received POST request to extract-articles');
@@ -61,13 +69,17 @@ export async function POST({ request }) {
     // Convert the PDF file to a Uint8Array for pdfjs-dist
     const arrayBuffer = await pdfFile.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    
+
+    // IMPORTANT: Create a copy of the buffer BEFORE pdfjs processes it
+    // pdfjs will detach the ArrayBuffer, so we need a separate copy for pdfimages
+    const pdfBufferCopy = Buffer.from(uint8Array);
+
     console.log('API: Parsing PDF with pdfjs-dist...');
-    
+
     // Use pdfjs-dist which is more reliable with ESM
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    
-    // Load the PDF document
+
+    // Load the PDF document (we use pdfimages for image extraction, so no WASM needed)
     const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
     const pdfDocument = await loadingTask.promise;
     
@@ -160,20 +172,32 @@ export async function POST({ request }) {
     fullText = fullText
       .replace(/-\s*\n\s*/g, '')
       .replace(/\n{3,}/g, '\n\n');
-    
+
     console.log('API: Text extracted successfully');
     console.log('API: Text length:', fullText.length);
     console.log('API: First 500 characters:', fullText.substring(0, 500));
-    
+
+    // Extract images if requested
+    const extractImages = formData.get('extractImages') === 'on';
+    let extractedImages = [];
+
+    if (extractImages) {
+      console.log('API: Extracting images from PDF...');
+      // Use the pre-saved copy (pdfBufferCopy was created before pdfjs detached the ArrayBuffer)
+      extractedImages = await extractImagesFromPDF(pdfDocument, pdfBufferCopy);
+      console.log(`API: Extracted ${extractedImages.length} images from PDF`);
+    }
+
     // Split text into potential articles (simple approach for now)
     // We'll look for article titles or sections
-    const extractedArticles = extractArticlesFromText(fullText, lineRecords);
+    const extractedArticles = extractArticlesFromText(fullText, lineRecords, extractedImages);
     
     console.log('API: Extracted', extractedArticles.length, 'articles from PDF');
     
     return new Response(JSON.stringify({
       success: true,
       articles: extractedArticles,
+      extractedImages: extractedImages, // Return all extracted images for manual selection
       message: `Successfully extracted ${extractedArticles.length} articles from the PDF.`,
       pdfInfo: {
         pages: pdfDocument.numPages,
@@ -198,12 +222,16 @@ export async function POST({ request }) {
   }
 }
 
+// Images will be manually assigned by the user through the UI
+// No automatic image matching
+
 // Helper function to extract articles from PDF text
-function extractArticlesFromText(text, lineRecords = []) {
+function extractArticlesFromText(text, lineRecords = [], extractedImages = []) {
   console.log('API: Starting article extraction from text length:', text.length);
   console.log('API: First 2000 characters of PDF text:');
   console.log(text.substring(0, 2000));
   console.log('--- END SAMPLE ---');
+  console.log(`API: Available images for articles: ${extractedImages.length}`);
 
   const articles = [];
   const DEFAULT_AUTHOR = 'Janice Seiferling';
@@ -264,11 +292,35 @@ function extractArticlesFromText(text, lineRecords = []) {
     return title;
   }
 
+  // Helper function to find which page a text index belongs to
+  function findPageForTextIndex(textIndex) {
+    if (!Array.isArray(lineRecords) || lineRecords.length === 0) {
+      return 1; // Default to page 1
+    }
+
+    // Find the line record that contains this text position
+    let cumulativeLength = 0;
+    for (const record of lineRecords) {
+      const lineLength = record.text.length + 1; // +1 for newline
+      if (textIndex <= cumulativeLength + lineLength) {
+        return record.page;
+      }
+      cumulativeLength += lineLength;
+    }
+
+    // If not found, return the last page
+    return lineRecords[lineRecords.length - 1].page;
+  }
+
   function addHeadlineCandidate(rawTitle, startIndex, endIndex, meta = {}) {
     const title = cleanHeadline(rawTitle);
     if (!title) {
       return;
     }
+
+    // If page is not provided in meta, try to find it from the text index
+    const page = meta.page ?? findPageForTextIndex(startIndex);
+
     const existing = headlineCandidates.get(title);
     if (!existing || (meta.confidence ?? 0) > (existing.confidence ?? 0)) {
       headlineCandidates.set(title, {
@@ -276,9 +328,10 @@ function extractArticlesFromText(text, lineRecords = []) {
         index: startIndex,
         endIndex,
         author: meta.author,
-        confidence: meta.confidence ?? 1
+        confidence: meta.confidence ?? 1,
+        page  // Track which page the headline appears on
       });
-      console.log(`API: ✓ Recorded headline candidate: "${title}" (confidence=${meta.confidence ?? 1})`);
+      console.log(`API: ✓ Recorded headline candidate: "${title}" (confidence=${meta.confidence ?? 1}, page=${page})`);
     }
   }
 
@@ -436,6 +489,8 @@ function extractArticlesFromText(text, lineRecords = []) {
     mergedHeadlines.push(current);
   }
 
+  // No automatic image assignment - images will be manually selected by user
+
   for (let i = 0; i < mergedHeadlines.length; i++) {
     const current = mergedHeadlines[i];
 
@@ -469,10 +524,13 @@ function extractArticlesFromText(text, lineRecords = []) {
     }
 
     console.log(`API: ✓ Article #${articles.length + 1}: "${current.title}" by ${author} (${articleContent.length} chars) [confidence=${current.confidence}]`);
+
+    // No automatic image assignment - user will select manually
     articles.push(createArticleObject({
       title: current.title,
       author,
-      content: [articleContent]
+      content: [articleContent],
+      image: null  // Will be assigned manually by user
     }, articles.length));
   }
 
@@ -621,8 +679,10 @@ function extractArticlesFromText(text, lineRecords = []) {
 
       const normalizedCandidate = normalizeHeadlineText(candidateText);
       const confidence = 2.1 + (clusterHasBold ? 1.1 : 0.4) + Math.min(0.7, avgTitle) + Math.min(0.6, avgUppercase) + (boldHeadlinesNormalized.has(normalizedCandidate) ? 0.5 : 0);
+      const headlinePage = buffer.length > 0 ? buffer[0].page : 1;  // Get page from first line in cluster
       addHeadlineCandidate(candidateText, startIndex, endIndex, {
-        confidence
+        confidence,
+        page: headlinePage
       });
       clusterHasBold = false;
     };
@@ -651,7 +711,7 @@ function extractArticlesFromText(text, lineRecords = []) {
       const canExtendCluster = buffer.length > 0 && (metrics.titleRatio >= 0.6 || metrics.uppercaseRatio >= 0.5);
 
       if (isStrongCandidate || canExtendCluster) {
-        buffer.push({ text: normalized, hasBold: record.hasBold });
+        buffer.push({ text: normalized, hasBold: record.hasBold, page: record.page });
         if (buffer.length === 1 && record.hasBold) {
           firstItemWasBold = true;
         }
@@ -778,12 +838,12 @@ function createArticleObject(articleData, index) {
   const fullText = articleData.content.join(' ').trim();
   const words = fullText.split(/\s+/);
   const description = words.slice(0, 30).join(' ') + (words.length > 30 ? '...' : '');
-  
+
   // Try to detect category from content
   const contentLower = fullText.toLowerCase();
   const titleLower = articleData.title.toLowerCase();
   let category = 'community';
-  
+
   if (contentLower.includes('sport') || contentLower.includes('game') || contentLower.includes('team') || contentLower.includes('basketball') || contentLower.includes('hoops')) {
     category = 'sports';
   } else if (contentLower.includes('business') || titleLower.includes('business') || contentLower.includes('company') || contentLower.includes('economic')) {
@@ -795,7 +855,10 @@ function createArticleObject(articleData, index) {
   } else if (titleLower.includes('out & about') || titleLower.includes('jazz') || titleLower.includes('festival') || contentLower.includes('theater') || contentLower.includes('music')) {
     category = 'events';
   }
-  
+
+  // Use extracted image if available, otherwise use placeholder
+  const imagePath = articleData.image ? articleData.image.path : '/images/placeholder-council.jpg';
+
   return {
     id: `extracted-article-${index + 1}`,
     title: articleData.title,
@@ -804,7 +867,7 @@ function createArticleObject(articleData, index) {
     author: articleData.author || 'Janice Seiferling',  // Default to Janice
     category: category,
     tags: [category, 'local', 'news'],
-    image: '/images/placeholder-council.jpg',
+    image: imagePath,
     featured: index === 0,
     content: [
       {
@@ -996,7 +1059,7 @@ function createHeadlineRegex(title) {
         return '(?:&|and)[\s-]*';
       }
       if (ch === "'") {
-        return "(?:['’‘])[\s-]*";
+        return "(?:['''])[\s-]*";
       }
       if (ch === ',') {
         return ',?[\s-]*';
@@ -1007,8 +1070,8 @@ function createHeadlineRegex(title) {
       if (ch === '?') {
         return '\\?';
       }
-      if (ch === '“' || ch === '”' || ch === '"') {
-        return '(?:["“”])[\s-]*';
+      if (ch === '"' || ch === '"' || ch === '"') {
+        return '(?:["""])[\s-]*';
       }
       if (ch === '-') {
         return '[\s-]*';
@@ -1021,4 +1084,148 @@ function createHeadlineRegex(title) {
   const pattern = wordPatterns.join('[\s-]+');
 
   return new RegExp(`(${pattern})`, 'i');
+}
+
+// Function to extract images from PDF
+async function extractImagesFromPDF(pdfDocument, uint8Array) {
+  const extractedImages = [];
+  const outputDir = join(process.cwd(), 'public', 'images', 'extracted');
+  const tempDir = join(process.cwd(), 'temp-pdf-extract');
+
+  // Ensure directories exist
+  if (!existsSync(outputDir)) {
+    await mkdir(outputDir, { recursive: true });
+    console.log('API: Created images/extracted directory');
+  }
+
+  if (!existsSync(tempDir)) {
+    await mkdir(tempDir, { recursive: true });
+  }
+
+  try {
+    // Save PDF to temporary file for pdfimages to process
+    const timestamp = Date.now();
+    const tempPdfPath = join(tempDir, `temp-${timestamp}.pdf`);
+    const imagePrefix = join(tempDir, `img-${timestamp}`);
+
+    await writeFile(tempPdfPath, uint8Array);
+    console.log('API: Saved temporary PDF for image extraction');
+
+    // Use pdfimages to extract all images (including JPEG2000)
+    // -png: convert all images to PNG format
+    // -p: include page numbers in filenames
+    const pdfimagesCmd = `pdfimages -png -p "${tempPdfPath}" "${imagePrefix}"`;
+
+    console.log('API: Running pdfimages to extract images...');
+    await execAsync(pdfimagesCmd);
+
+    // Read all extracted images from temp directory
+    const files = await readdir(tempDir);
+    const imageFiles = files.filter(f => f.startsWith(`img-${timestamp}`) && f.endsWith('.png'));
+
+    console.log(`API: Found ${imageFiles.length} extracted images`);
+
+    // Process each extracted image
+    let imageCounter = 0;
+    for (const imageFile of imageFiles) {
+      const tempImagePath = join(tempDir, imageFile);
+
+      // Parse page number from filename (format: img-TIMESTAMP-PAGENUM-IMGNUM.png)
+      const match = imageFile.match(/img-\d+-(\d+)-\d+\.png/);
+      const pageNum = match ? parseInt(match[1]) : 1;
+
+      // Read image to get dimensions and copy to final location
+      const imageBuffer = await readFile(tempImagePath);
+      const finalFilename = `article-page${pageNum}-${timestamp}-${imageCounter}.png`;
+      const finalPath = join(outputDir, finalFilename);
+      const webPath = `/images/extracted/${finalFilename}`;
+
+      await writeFile(finalPath, imageBuffer);
+      console.log(`API: Extracted image from page ${pageNum}: ${finalFilename} (${imageBuffer.length} bytes)`);
+
+      extractedImages.push({
+        page: pageNum,
+        name: imageFile,
+        path: webPath,
+        size: imageBuffer.length
+      });
+
+      // Clean up temp image
+      await unlink(tempImagePath);
+      imageCounter++;
+    }
+
+    // Clean up temporary PDF
+    await unlink(tempPdfPath);
+
+    console.log(`API: Successfully extracted ${extractedImages.length} images using pdfimages`);
+  } catch (error) {
+    console.error('API: Error extracting images with pdfimages:', error);
+  }
+
+  return extractedImages;
+}
+
+// Simple PNG encoder (for basic RGB/RGBA data)
+async function createPNGBuffer(imageData, width, height, kind = null) {
+  try {
+    // Try to use node-canvas
+    const { createCanvas } = await import('canvas').catch(() => null);
+
+    if (createCanvas) {
+      const canvas = createCanvas(width, height);
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.createImageData(width, height);
+
+      // pdfjs-dist images can be in different formats:
+      // - RGB (3 bytes per pixel)
+      // - RGBA (4 bytes per pixel)
+      // - Grayscale (1 byte per pixel)
+
+      const bytesPerPixel = imageData.length / (width * height);
+
+      console.log(`API: Image format - width: ${width}, height: ${height}, bytesPerPixel: ${bytesPerPixel}, kind: ${kind}`);
+
+      if (bytesPerPixel === 4) {
+        // RGBA format - direct copy
+        for (let i = 0; i < imageData.length; i++) {
+          imgData.data[i] = imageData[i];
+        }
+      } else if (bytesPerPixel === 3) {
+        // RGB format - need to add alpha channel
+        let j = 0;
+        for (let i = 0; i < imageData.length; i += 3) {
+          imgData.data[j++] = imageData[i];     // R
+          imgData.data[j++] = imageData[i + 1]; // G
+          imgData.data[j++] = imageData[i + 2]; // B
+          imgData.data[j++] = 255;               // A (fully opaque)
+        }
+      } else if (bytesPerPixel === 1) {
+        // Grayscale - convert to RGBA
+        let j = 0;
+        for (let i = 0; i < imageData.length; i++) {
+          const gray = imageData[i];
+          imgData.data[j++] = gray; // R
+          imgData.data[j++] = gray; // G
+          imgData.data[j++] = gray; // B
+          imgData.data[j++] = 255;  // A
+        }
+      } else {
+        console.warn(`API: Unexpected bytes per pixel: ${bytesPerPixel}`);
+        // Try direct copy as fallback
+        for (let i = 0; i < Math.min(imageData.length, imgData.data.length); i++) {
+          imgData.data[i] = imageData[i];
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      return canvas.toBuffer('image/png');
+    }
+  } catch (e) {
+    console.error('API: Canvas error:', e);
+  }
+
+  // Fallback: return raw data (likely won't be a valid PNG)
+  console.warn('API: Using fallback - image may be corrupted');
+  return Buffer.from(imageData);
 }

@@ -122,7 +122,7 @@ import Hero from '../components/Hero.astro';
               <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
               <div>
                 <h3 class="text-lg font-semibold text-blue-800">Processing PDF...</h3>
-                <p class="text-sm text-blue-600">This may take a few moments depending on the file size.</p>
+                <p class="text-sm text-blue-600" id="processingMessage">Extracting text and analyzing articles...</p>
               </div>
             </div>
           </div>
@@ -195,6 +195,7 @@ import Hero from '../components/Hero.astro';
   // Article selection state
   let selectedArticles: Set<number> = new Set();
   let allArticles: any[] = [];
+  let allExtractedImages: any[] = [];  // Store all extracted images for manual selection
 
 
   // The label for="pdfFile" automatically handles clicks to open the file dialog
@@ -278,27 +279,33 @@ import Hero from '../components/Hero.astro';
   // Form submission
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const formData = new FormData(form);
     const file = fileInput.files?.[0];
-    
+
     if (!file) {
       showMessage('Please select a PDF file.', 'error');
       return;
     }
+
+    // Check if image extraction is enabled
+    const extractImagesCheckbox = form.querySelector('input[name="extractImages"]') as HTMLInputElement;
+    const shouldExtractImages = extractImagesCheckbox?.checked ?? false;
 
     // Show processing status
     processingStatus.classList.remove('hidden');
     extractionResults.classList.add('hidden');
     formMessage.classList.add('hidden');
 
+    const processingMessage = document.getElementById('processingMessage');
+
     try {
       console.log('Submitting form to API...');
-      console.log('FormData contents:');
-      for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-      
+      console.log('Extract images:', shouldExtractImages);
+
+      // Image extraction is handled server-side
+      if (processingMessage) processingMessage.textContent = 'Extracting articles and images...';
+
       // Don't set Content-Type header - let browser set it automatically with boundary
       const response = await fetch('/api/extract-articles', {
         method: 'POST',
@@ -306,12 +313,19 @@ import Hero from '../components/Hero.astro';
       });
 
       console.log('Response status:', response.status, response.statusText);
-      
+
       const result = await response.json();
       console.log('Response data:', result);
 
       if (result.success) {
         console.log('Success! Articles:', result.articles);
+
+        // Store extracted images for manual selection
+        if (result.extractedImages && result.extractedImages.length > 0) {
+          allExtractedImages = result.extractedImages;
+          console.log(`Stored ${allExtractedImages.length} extracted images for manual selection`);
+        }
+
         displayResults(result.articles);
         showMessage('Articles extracted successfully!', 'success');
       } else {
@@ -332,20 +346,47 @@ import Hero from '../components/Hero.astro';
     allArticles = articles;
     selectedArticles.clear();
     articlesList.innerHTML = '';
-    
+
     articles.forEach((article, index) => {
       const articleDiv = document.createElement('div');
       articleDiv.className = 'bg-white border border-gray-200 rounded-lg p-6';
+      // Check if image exists and is not a placeholder
+      const hasExtractedImage = article.image &&
+        (article.image.startsWith('data:image/') ||
+         (article.image.startsWith('/images/extracted/') && !article.image.includes('placeholder')));
+
+      // Use API endpoint for extracted images to bypass Astro's public directory caching
+      // Use path params instead of query params: /api/serve-image/images/extracted/file.png
+      const imageSrc = article.image && article.image.startsWith('/images/extracted/')
+        ? `/api/serve-image${article.image}`  // Just append the path directly
+        : article.image;
+
       articleDiv.innerHTML = `
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0 mt-1">
-            <input 
-              type="checkbox" 
-              id="article-${index}" 
+            <input
+              type="checkbox"
+              id="article-${index}"
               class="article-checkbox w-4 h-4 text-brand-navy border-gray-300 rounded focus:ring-brand-navy"
               data-index="${index}"
             >
           </div>
+          ${hasExtractedImage ? `
+          <div class="flex-shrink-0">
+            <img src="${imageSrc}" alt="${article.title}" class="w-32 h-32 object-cover rounded-lg border-2 border-green-500">
+            <button class="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1" onclick="selectPhotoForArticle(${index})">
+              Change Photo
+            </button>
+          </div>
+          ` : `
+          <div class="flex-shrink-0">
+            <div class="w-32 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <button class="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-2" onclick="selectPhotoForArticle(${index})">
+                Select Photo
+              </button>
+            </div>
+          </div>
+          `}
           <div class="flex-1">
             <div class="flex justify-between items-start mb-4">
               <h4 class="text-xl font-bold text-brand-navy">${article.title}</h4>
@@ -363,6 +404,7 @@ import Hero from '../components/Hero.astro';
             </div>
             <div class="mt-3 text-xs text-gray-500">
               ${article.content.length} content blocks • ${article.wordCount} words
+              ${hasExtractedImage ? ' • <span class="text-green-600 font-medium">Has extracted image</span>' : ''}
             </div>
           </div>
         </div>
@@ -451,7 +493,7 @@ import Hero from '../components/Hero.astro';
     }
   }
 
-  function publishSelected() {
+  async function publishSelected() {
     if (selectedArticles.size === 0) {
       showMessage('Please select at least one article to publish.', 'error');
       return;
@@ -461,16 +503,33 @@ import Hero from '../components/Hero.astro';
     
     // Show confirmation
     const confirmMessage = `Are you sure you want to publish ${selectedArticles.size} article(s)?`;
-    if (confirm(confirmMessage)) {
-      // Here you would implement the actual publishing logic
-      console.log('Publishing articles:', selectedArticlesList);
-      showMessage(`Successfully published ${selectedArticles.size} article(s)!`, 'success');
-      
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      const response = await fetch('/api/publish-articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articles: selectedArticlesList })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        console.error('Publish failed:', result);
+        showMessage(result.error || 'Failed to publish articles.', 'error');
+        return;
+      }
+
+      console.log('Published:', result.published);
+      showMessage(result.message || `Successfully published ${selectedArticles.size} article(s)!`, 'success');
+
       // Clear selection after publishing
       selectedArticles.clear();
       const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
       checkboxes.forEach(checkbox => checkbox.checked = false);
       updateSelectionUI();
+    } catch (err) {
+      console.error('Publish error:', err);
+      showMessage('An error occurred while publishing articles: ' + (err as Error).message, 'error');
     }
   }
 
@@ -586,6 +645,99 @@ import Hero from '../components/Hero.astro';
       modal.remove();
     }
   };
+
+  // Photo selection for articles
+  (window as any).selectPhotoForArticle = function(index: number) {
+    const article = allArticles[index];
+    if (!article) return;
+
+    if (allExtractedImages.length === 0) {
+      showMessage('No extracted images available. Please ensure image extraction is enabled.', 'error');
+      return;
+    }
+
+    // Create modal for photo selection
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-brand-navy">Select Photo for Article</h3>
+            <p class="text-sm text-gray-600 mt-1">${article.title}</p>
+          </div>
+          <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600">${allExtractedImages.length} images extracted from PDF. Click an image to select it for this article.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="photoGrid">
+          ${allExtractedImages.map((img, imgIndex) => `
+            <div class="relative group cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-brand-navy transition-colors"
+                 onclick="assignPhotoToArticle(${index}, ${imgIndex})">
+              <img src="/api/serve-image${img.path}"
+                   alt="Extracted image ${imgIndex + 1}"
+                   class="w-full h-48 object-cover">
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+                <svg class="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-2">
+                <div>Image ${imgIndex + 1}</div>
+                <div class="text-gray-300">Page ${img.page} • ${(img.size / 1024).toFixed(0)}KB</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="mt-6 flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="removePhotoFromArticle(${index})" class="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50">
+            Remove Photo
+          </button>
+          <button type="button" onclick="closePhotoModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  };
+
+  (window as any).assignPhotoToArticle = function(articleIndex: number, imageIndex: number) {
+    const image = allExtractedImages[imageIndex];
+    if (!image) return;
+
+    // Assign the image path to the article
+    allArticles[articleIndex].image = image.path;
+
+    // Close modal and refresh display
+    (window as any).closePhotoModal();
+    displayResults(allArticles);
+    showMessage(`Photo assigned to "${allArticles[articleIndex].title}"`, 'success');
+  };
+
+  (window as any).removePhotoFromArticle = function(articleIndex: number) {
+    // Remove the image from the article
+    allArticles[articleIndex].image = null;
+
+    // Close modal and refresh display
+    (window as any).closePhotoModal();
+    displayResults(allArticles);
+    showMessage(`Photo removed from "${allArticles[articleIndex].title}"`, 'success');
+  };
+
+  (window as any).closePhotoModal = function() {
+    const modals = document.querySelectorAll('.fixed.inset-0');
+    modals.forEach(modal => modal.remove());
+  };
+
+  // Image extraction is handled server-side by the API using pdfimages
+  // All extracted images are returned in the API response for manual selection
 
   } // Close the else block
 </script>

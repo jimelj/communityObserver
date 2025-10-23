@@ -36,6 +36,12 @@ coverage/
 *.swp
 *~
 
+# ----- PDF Extraction -----
+public/images/extracted/
+public/pdfjs/
+temp-pdf-extract/
+src/data/articles/*.json
+
 # Keep lockfiles committed
 !package-lock.json
 !yarn.lock

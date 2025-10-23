@@ -1,5 +1,167 @@
 # Changelog
 
+## [1.7.0] - 2025-10-14
+
+### 🚀 Major Features
+
+#### **Google AdSense Integration**
+- **Complete advertising system**: Implemented Google AdSense with multiple ad slots
+- **Strategic ad placement**: Added banner, rectangle, and sidebar ad positions
+- **Professional monetization**: Integrated with Google AdSense for revenue generation
+- **Responsive design**: Ads adapt to different screen sizes and layouts
+- **AdSense compliance**: Added ads.txt file for proper AdSense verification
+
+#### **Enhanced Email System**
+- **Resend integration**: Switched to production-ready email service
+- **Verified domains**: Using verified sender domains for better deliverability
+- **Production email addresses**: Updated to use info@thecommunityobserver.com
+- **Improved reliability**: More robust email delivery with better error handling
+- **Enhanced debugging**: Comprehensive logging for email troubleshooting
+
+### 🔧 Technical Improvements
+
+#### **Form Processing Enhancements**
+- **Rate limiting**: 5-minute cooldown between form submissions
+- **Spam protection**: Enhanced honeypot fields and validation
+- **File handling**: Improved large file processing with chunked uploads
+- **Confirmation emails**: Automatic confirmations for content submissions
+- **Form reset**: Automatic cleanup of file attachments after submission
+
+#### **Code Quality**
+- **Error handling**: Improved error handling throughout the application
+- **Debugging capabilities**: Added comprehensive debugging for troubleshooting
+- **Performance optimization**: Better caching and static generation
+- **Code organization**: Cleaner separation of concerns
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `ads.txt` - AdSense verification file
+- Enhanced `functions/sendEmail.js` - Improved email processing
+
+#### **Updated Files**
+- `src/components/AdSlot.astro` - Complete AdSense integration
+- `src/pages/advertise.astro` - Updated with placeholder ads
+- `src/data/emailConfig.js` - Enhanced email configuration
+- `public/js/forms.js` - Improved form validation and debugging
+
+### 🎯 Benefits
+
+- **Revenue generation**: Professional advertising system for monetization
+- **Better deliverability**: Improved email system with verified domains
+- **Enhanced user experience**: Better form handling and validation
+- **Improved maintainability**: Cleaner code organization and debugging
+- **Production readiness**: More robust error handling and logging
+
+---
+
+## [1.6.0] - 2025-09-15
+
+### 🚀 Major Features
+
+#### **Content Submission System**
+- **Comprehensive submission form**: Dedicated content submission system at `/submit-content`
+- **Multiple file uploads**: Support for photos, documents, and other media files
+- **Professional workflow**: Email-based content management system
+- **File type validation**: Support for common document and image formats
+- **Automatic confirmations**: Email confirmations sent to submitters
+
+#### **Enhanced User Experience**
+- **Visual file management**: Shows selected files with removal options
+- **Real-time validation**: Word count tracking and file size validation
+- **Multiple content types**: Support for news articles, events, photos, etc.
+- **Publication preferences**: Options for time-sensitive and anonymous content
+
+### 🔧 Technical Improvements
+
+#### **File Processing**
+- **Secure file handling**: Proper file processing with size limits (5MB per file)
+- **Base64 encoding**: Safe file attachment processing for email
+- **Memory optimization**: Chunked file processing to prevent memory issues
+- **Automatic cleanup**: Files removed from server after email delivery
+
+#### **Form Enhancements**
+- **Rate limiting**: Prevents spam with submission cooldowns
+- **Honeypot protection**: Hidden fields to detect bot submissions
+- **Input validation**: Client-side and server-side validation
+- **Error handling**: Comprehensive error messages and fallback handling
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `src/pages/submit-content.astro` - Comprehensive content submission form
+
+#### **Updated Files**
+- `functions/sendEmail.js` - Enhanced to handle file attachments and confirmations
+- `public/js/forms.js` - Updated validation for content submission forms
+- `src/components/Header.astro` - Added "Submit Content" navigation link
+
+### 🎯 Benefits
+
+- **Streamlined workflow**: Professional content submission process
+- **No database required**: All submissions handled via email
+- **User-friendly interface**: Clear guidelines and validation feedback
+- **Secure processing**: Files automatically cleaned up after delivery
+- **Scalable system**: Easy to manage without complex infrastructure
+
+---
+
+## [1.5.0] - 2025-08-25
+
+### 🚀 Major Features
+
+#### **Dynamic Article System Enhancement**
+- **Homepage optimization**: Article cards now generated dynamically from JSON files
+- **Single source of truth**: Eliminated hardcoded article data on homepage
+- **Automatic updates**: Cards automatically reflect changes to article JSON files
+- **Better maintainability**: Reduced manual maintenance of homepage content
+
+#### **Leadership Letter Refresh**
+- **Updated content**: Complete rewrite with new messaging and focus
+- **New title**: "A New Way to Connect Your Community"
+- **Updated contact information**: Changed to info@thecommunityobserver.com
+- **Content archival**: Preserved original version for reference
+
+### 🎨 UI/UX Improvements
+
+#### **Form Improvements**
+- **Enhanced validation**: Better client-side form validation
+- **Improved error handling**: More robust form submission error handling
+- **Better accessibility**: Enhanced form accessibility features
+
+#### **Content Branding**
+- **Sample article indicators**: Added "SAMPLE ARTICLE:" prefix to all article titles
+- **Consistent formatting**: Unified article presentation across the site
+- **Dynamic content**: Homepage cards automatically update from JSON files
+
+### 🔧 Technical Improvements
+
+#### **Code Quality**
+- **Static generation**: All article pages pre-built for faster loading
+- **Optimized routing**: Dynamic routes with proper static path generation
+- **Better caching**: Static content improves caching and SEO
+
+### 🗂️ File Structure Changes
+
+#### **Added Files**
+- `src/pages/leadership-letter-old.astro` - Archived original leadership letter
+
+#### **Updated Files**
+- `src/pages/leadership-letter.astro` - Complete content refresh
+- `src/pages/index.astro` - Dynamic article card generation
+- `src/data/articles/*.json` - Updated with sample indicators
+- `src/components/Header.astro` - Enhanced navigation
+
+### 🎯 Benefits
+
+- **Faster content creation**: Streamlined article management process
+- **Better consistency**: No duplication between homepage and article pages
+- **Improved performance**: Static generation for faster page loads
+- **Enhanced SEO**: All pages exist at build time for better search indexing
+- **Easier maintenance**: Simpler file structure and workflow
+
+---
+
 ## [1.4.0] - 2025-01-27
 
 ### 🎉 Major Announcement Feature
