@@ -353,13 +353,14 @@ import Hero from '../components/Hero.astro';
       // Check if image exists and is not a placeholder
       const hasExtractedImage = article.image &&
         (article.image.startsWith('data:image/') ||
-         (article.image.startsWith('/images/extracted/') && !article.image.includes('placeholder')));
+         article.image.startsWith('/images/extracted/') ||
+         article.image.startsWith('/images/articles/'));
 
-      // Use API endpoint for extracted images to bypass Astro's public directory caching
-      // Use path params instead of query params: /api/serve-image/images/extracted/file.png
+      // Use API endpoint for extracted (temp) images to bypass Astro's public directory caching
+      // Permanent images in /images/articles/ can be served directly
       const imageSrc = article.image && article.image.startsWith('/images/extracted/')
-        ? `/api/serve-image${article.image}`  // Just append the path directly
-        : article.image;
+        ? `/api/serve-image${article.image}`  // Temp images via API
+        : article.image;  // Permanent images direct path
 
       articleDiv.innerHTML = `
         <div class="flex items-start space-x-4">
@@ -708,17 +709,36 @@ import Hero from '../components/Hero.astro';
     document.body.appendChild(modal);
   };
 
-  (window as any).assignPhotoToArticle = function(articleIndex: number, imageIndex: number) {
+  (window as any).assignPhotoToArticle = async function(articleIndex: number, imageIndex: number) {
     const image = allExtractedImages[imageIndex];
     if (!image) return;
 
-    // Assign the image path to the article
-    allArticles[articleIndex].image = image.path;
+    try {
+      // Copy image from temp location to permanent articles folder
+      const response = await fetch('/api/copy-article-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempImagePath: image.path })
+      });
 
-    // Close modal and refresh display
-    (window as any).closePhotoModal();
-    displayResults(allArticles);
-    showMessage(`Photo assigned to "${allArticles[articleIndex].title}"`, 'success');
+      const result = await response.json();
+
+      if (!result.success) {
+        showMessage(`Failed to copy image: ${result.error}`, 'error');
+        return;
+      }
+
+      // Assign the permanent image path to the article
+      allArticles[articleIndex].image = result.permanentPath;
+
+      // Close modal and refresh display
+      (window as any).closePhotoModal();
+      displayResults(allArticles);
+      showMessage(`Photo assigned to "${allArticles[articleIndex].title}"`, 'success');
+    } catch (error) {
+      console.error('Error assigning photo:', error);
+      showMessage('Failed to assign photo: ' + (error as Error).message, 'error');
+    }
   };
 
   (window as any).removePhotoFromArticle = function(articleIndex: number) {

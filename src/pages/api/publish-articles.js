@@ -112,6 +112,21 @@ export async function POST({ request }) {
       });
     }
 
+    // Clean up temporary images after successful publishing
+    try {
+      const cleanupResponse = await fetch(new URL('/api/cleanup-temp-images', request.url), {
+        method: 'POST'
+      });
+
+      if (cleanupResponse.ok) {
+        const cleanupResult = await cleanupResponse.json();
+        console.log(`API: Cleanup completed - ${cleanupResult.message}`);
+      }
+    } catch (cleanupError) {
+      console.warn('API: Cleanup failed (non-critical):', cleanupError.message);
+      // Don't fail the publish if cleanup fails
+    }
+
     return new Response(JSON.stringify({
       success: true,
       message: `Successfully published ${results.length} article(s)`,
