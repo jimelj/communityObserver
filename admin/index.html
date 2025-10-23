@@ -1,0 +1,763 @@
+---
+import Page from '../layouts/Page.astro';
+import Hero from '../components/Hero.astro';
+---
+
+<Page
+  title="Extract Articles from PDF - Community Observer"
+  description="Upload a PDF newspaper and automatically extract articles for the Community Observer website."
+>
+  <!-- Hero Section -->
+  <Hero
+    title="Extract Articles from PDF"
+    subtitle="Convert Newspaper PDF to Website Articles"
+    description="Upload your newspaper PDF and we'll automatically extract 3-4 articles and format them for the website."
+    variant="minimal"
+  />
+
+  <div class="container mx-auto px-4 py-16">
+    <div class="max-w-4xl mx-auto">
+      
+      <!-- Instructions -->
+      <div class="bg-brand-light/20 rounded-lg p-6 mb-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+          How It Works
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">1</div>
+            <h3 class="font-semibold text-brand-navy mb-2">Upload PDF</h3>
+            <p class="text-brand-gray">Upload your newspaper PDF file</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">2</div>
+            <h3 class="font-semibold text-brand-navy mb-2">AI Processing</h3>
+            <p class="text-brand-gray">Our system extracts and analyzes articles</p>
+          </div>
+          <div class="text-center">
+            <div class="w-12 h-12 bg-brand-navy text-white rounded-full flex items-center justify-center mx-auto mb-3 text-xl font-bold">3</div>
+            <h3 class="font-semibold text-brand-navy mb-2">Review & Publish</h3>
+            <p class="text-brand-gray">Review extracted articles and publish to website</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF Upload Form -->
+      <div class="bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-serif font-bold text-brand-navy mb-6">
+          Upload Newspaper PDF
+        </h2>
+        
+        <form id="pdfUploadForm" class="space-y-6" enctype="multipart/form-data">
+          <!-- PDF Upload -->
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">
+              Select PDF File *
+            </label>
+            <div id="dropZoneContainer" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-brand-navy transition-colors cursor-pointer">
+              <input 
+                type="file" 
+                id="pdfFile" 
+                name="pdfFile" 
+                accept="application/pdf,.pdf"
+                required
+                class="hidden"
+              >
+              <label for="pdfFile" id="dropZone" class="cursor-pointer block">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p class="text-lg font-medium text-brand-navy mb-2 pointer-events-none">Click to upload or drag and drop</p>
+                <p class="text-sm text-brand-gray pointer-events-none">PDF files only, max 50MB</p>
+              </label>
+              <div id="fileInfo" class="hidden mt-4">
+                <div class="flex items-center justify-center space-x-2">
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span id="fileName" class="text-sm font-medium text-brand-navy"></span>
+                  <button type="button" id="removeFile" class="text-red-500 hover:text-red-700 text-sm">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Processing Options -->
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-3">
+              Extraction Options
+            </label>
+            <div class="space-y-3">
+              <label class="flex items-center">
+                <input type="checkbox" name="extractImages" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Extract and include images</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="autoCategorize" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Automatically categorize articles</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" name="generateTags" checked class="mr-3 text-brand-navy focus:ring-brand-navy">
+                <span class="text-sm text-brand-gray">Generate relevant tags</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="text-center">
+            <button 
+              type="submit" 
+              class="btn-primary px-8 py-4 text-lg"
+              id="extractBtn"
+            >
+              Extract Articles
+            </button>
+          </div>
+        </form>
+
+        <!-- Processing Status -->
+        <div id="processingStatus" class="hidden mt-8">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <div class="flex items-center">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-3"></div>
+              <div>
+                <h3 class="text-lg font-semibold text-blue-800">Processing PDF...</h3>
+                <p class="text-sm text-blue-600" id="processingMessage">Extracting text and analyzing articles...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div id="extractionResults" class="hidden mt-8">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-serif font-bold text-brand-navy">Extracted Articles</h3>
+            <div class="flex space-x-2">
+              <button id="selectAllBtn" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200">
+                Select All
+              </button>
+              <button id="publishSelectedBtn" class="text-sm bg-green-100 text-green-700 px-3 py-1 rounded-full hover:bg-green-200">
+                Publish Selected (0)
+              </button>
+            </div>
+          </div>
+          <div id="articlesList" class="space-y-4">
+            <!-- Articles will be populated here -->
+          </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div id="formMessage" class="mt-6 hidden"></div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="mt-12 bg-gradient-to-br from-brand-light/20 to-brand-paper rounded-2xl p-8">
+        <div class="text-center">
+          <h3 class="text-2xl font-serif font-bold text-brand-navy mb-4">
+            Need Help?
+          </h3>
+          <p class="text-brand-gray mb-6">
+            Having trouble with the extraction process?
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/contact" class="btn-primary">
+              Contact Support
+            </a>
+            <a href="/submission-guidelines" class="btn-secondary">
+              View Guidelines
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Page>
+
+<script>
+  // File upload handling
+  const fileInput = document.getElementById('pdfFile') as HTMLInputElement;
+  const dropZone = document.getElementById('dropZone');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const removeFileBtn = document.getElementById('removeFile');
+  const form = document.getElementById('pdfUploadForm') as HTMLFormElement;
+  const processingStatus = document.getElementById('processingStatus');
+  const extractionResults = document.getElementById('extractionResults');
+  const articlesList = document.getElementById('articlesList');
+  const formMessage = document.getElementById('formMessage');
+  const selectAllBtn = document.getElementById('selectAllBtn');
+  const publishSelectedBtn = document.getElementById('publishSelectedBtn');
+
+  if (!fileInput || !dropZone || !fileInfo || !fileName || !removeFileBtn || !form || !processingStatus || !extractionResults || !articlesList || !formMessage || !selectAllBtn || !publishSelectedBtn) {
+    console.error('Required DOM elements not found');
+  } else {
+
+  // Article selection state
+  let selectedArticles: Set<number> = new Set();
+  let allArticles: any[] = [];
+  let allExtractedImages: any[] = [];  // Store all extracted images for manual selection
+
+
+  // The label for="pdfFile" automatically handles clicks to open the file dialog
+  // We just need to handle drag and drop events on the container
+  const dropZoneContainer = document.getElementById('dropZoneContainer');
+  if (dropZoneContainer) {
+    // Drag and drop on the container
+    dropZoneContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneContainer.classList.add('border-brand-navy', 'bg-brand-light/10');
+    });
+
+    dropZoneContainer.addEventListener('dragenter', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneContainer.classList.add('border-brand-navy', 'bg-brand-light/10');
+    });
+
+    dropZoneContainer.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dropZoneContainer.contains(e.relatedTarget as Node)) {
+        dropZoneContainer.classList.remove('border-brand-navy', 'bg-brand-light/10');
+      }
+    });
+
+    dropZoneContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZoneContainer.classList.remove('border-brand-navy', 'bg-brand-light/10');
+      
+      console.log('Drop event triggered');
+      console.log('Files:', e.dataTransfer?.files);
+      
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        console.log('Dropped file:', file.name, file.type);
+        
+        if (file.type === 'application/pdf') {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          fileInput.files = dt.files;
+          handleFileSelect(file);
+        } else {
+          showMessage('Please upload a PDF file only.', 'error');
+        }
+      }
+    });
+  }
+
+  fileInput.addEventListener('change', (e) => {
+    console.log('File input changed');
+    const target = e.target as HTMLInputElement;
+    console.log('Files:', target.files);
+    if (target.files && target.files.length > 0) {
+      const file = target.files[0];
+      console.log('Selected file:', file.name, file.type);
+      if (file.type === 'application/pdf') {
+        handleFileSelect(file);
+      } else {
+        showMessage('Please select a PDF file only.', 'error');
+      }
+    }
+  });
+
+  function handleFileSelect(file: File) {
+    console.log('Handling file selection:', file.name, file.size, file.type);
+    if (fileName) fileName.textContent = file.name;
+    if (dropZone) dropZone.classList.add('hidden');
+    if (fileInfo) fileInfo.classList.remove('hidden');
+    console.log('File selection UI updated');
+  }
+
+  removeFileBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    if (dropZone) dropZone.classList.remove('hidden');
+    if (fileInfo) fileInfo.classList.add('hidden');
+  });
+
+  // Form submission
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+    const file = fileInput.files?.[0];
+
+    if (!file) {
+      showMessage('Please select a PDF file.', 'error');
+      return;
+    }
+
+    // Check if image extraction is enabled
+    const extractImagesCheckbox = form.querySelector('input[name="extractImages"]') as HTMLInputElement;
+    const shouldExtractImages = extractImagesCheckbox?.checked ?? false;
+
+    // Show processing status
+    processingStatus.classList.remove('hidden');
+    extractionResults.classList.add('hidden');
+    formMessage.classList.add('hidden');
+
+    const processingMessage = document.getElementById('processingMessage');
+
+    try {
+      console.log('Submitting form to API...');
+      console.log('Extract images:', shouldExtractImages);
+
+      // Image extraction is handled server-side
+      if (processingMessage) processingMessage.textContent = 'Extracting articles and images...';
+
+      // Don't set Content-Type header - let browser set it automatically with boundary
+      const response = await fetch('/api/extract-articles', {
+        method: 'POST',
+        body: formData
+      });
+
+      console.log('Response status:', response.status, response.statusText);
+
+      const result = await response.json();
+      console.log('Response data:', result);
+
+      if (result.success) {
+        console.log('Success! Articles:', result.articles);
+
+        // Store extracted images for manual selection
+        if (result.extractedImages && result.extractedImages.length > 0) {
+          allExtractedImages = result.extractedImages;
+          console.log(`Stored ${allExtractedImages.length} extracted images for manual selection`);
+        }
+
+        displayResults(result.articles);
+        showMessage('Articles extracted successfully!', 'success');
+      } else {
+        console.error('API returned error:', result.error);
+        showMessage(result.error || 'Failed to extract articles.', 'error');
+      }
+    } catch (error) {
+      console.error('Fetch error:', error);
+      console.error('Error details:', error.message, error.stack);
+      showMessage('An error occurred while processing the PDF: ' + error.message, 'error');
+    } finally {
+      processingStatus.classList.add('hidden');
+    }
+  });
+
+  function displayResults(articles: any[]) {
+    if (!articlesList) return;
+    allArticles = articles;
+    selectedArticles.clear();
+    articlesList.innerHTML = '';
+
+    articles.forEach((article, index) => {
+      const articleDiv = document.createElement('div');
+      articleDiv.className = 'bg-white border border-gray-200 rounded-lg p-6';
+      // Check if image exists and is not a placeholder
+      const hasExtractedImage = article.image &&
+        (article.image.startsWith('data:image/') ||
+         article.image.startsWith('/images/extracted/') ||
+         article.image.startsWith('/images/articles/'));
+
+      // Use API endpoint for extracted (temp) images to bypass Astro's public directory caching
+      // Permanent images in /images/articles/ can be served directly
+      const imageSrc = article.image && article.image.startsWith('/images/extracted/')
+        ? `/api/serve-image${article.image}`  // Temp images via API
+        : article.image;  // Permanent images direct path
+
+      articleDiv.innerHTML = `
+        <div class="flex items-start space-x-4">
+          <div class="flex-shrink-0 mt-1">
+            <input
+              type="checkbox"
+              id="article-${index}"
+              class="article-checkbox w-4 h-4 text-brand-navy border-gray-300 rounded focus:ring-brand-navy"
+              data-index="${index}"
+            >
+          </div>
+          ${hasExtractedImage ? `
+          <div class="flex-shrink-0">
+            <img src="${imageSrc}" alt="${article.title}" class="w-32 h-32 object-cover rounded-lg border-2 border-green-500">
+            <button class="text-xs text-blue-600 hover:text-blue-800 font-medium mt-1" onclick="selectPhotoForArticle(${index})">
+              Change Photo
+            </button>
+          </div>
+          ` : `
+          <div class="flex-shrink-0">
+            <div class="w-32 h-32 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+              <button class="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-2" onclick="selectPhotoForArticle(${index})">
+                Select Photo
+              </button>
+            </div>
+          </div>
+          `}
+          <div class="flex-1">
+            <div class="flex justify-between items-start mb-4">
+              <h4 class="text-xl font-bold text-brand-navy">${article.title}</h4>
+              <div class="flex space-x-2">
+                <button class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-200" onclick="editArticle(${index})">
+                  Edit
+                </button>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">${article.description}</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.category}</span>
+              <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${article.date}</span>
+              ${article.tags.map((tag: string) => `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">${tag}</span>`).join('')}
+            </div>
+            <div class="mt-3 text-xs text-gray-500">
+              ${article.content.length} content blocks • ${article.wordCount} words
+              ${hasExtractedImage ? ' • <span class="text-green-600 font-medium">Has extracted image</span>' : ''}
+            </div>
+          </div>
+        </div>
+      `;
+      articlesList.appendChild(articleDiv);
+    });
+
+    // Add event listeners to checkboxes
+    const checkboxes = document.querySelectorAll('.article-checkbox');
+    checkboxes.forEach((checkbox) => {
+      checkbox.addEventListener('change', handleArticleSelection);
+    });
+
+    // Add event listeners to buttons
+    if (selectAllBtn) selectAllBtn.addEventListener('click', toggleSelectAll);
+    if (publishSelectedBtn) publishSelectedBtn.addEventListener('click', publishSelected);
+
+    updateSelectionUI();
+    if (extractionResults) extractionResults.classList.remove('hidden');
+  }
+
+  function showMessage(message: string, type: 'success' | 'error') {
+    if (!formMessage) return;
+    formMessage.className = `mt-6 p-4 rounded-lg ${type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+    formMessage.textContent = message;
+    formMessage.classList.remove('hidden');
+  }
+
+  // Article selection functions
+  function handleArticleSelection(event: Event) {
+    const checkbox = event.target as HTMLInputElement;
+    const index = parseInt(checkbox.dataset.index || '0');
+    
+    if (checkbox.checked) {
+      selectedArticles.add(index);
+    } else {
+      selectedArticles.delete(index);
+    }
+    
+    updateSelectionUI();
+  }
+
+  function toggleSelectAll() {
+    const allSelected = selectedArticles.size === allArticles.length;
+    
+    if (allSelected) {
+      // Deselect all
+      selectedArticles.clear();
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+    } else {
+      // Select all
+      selectedArticles.clear();
+      allArticles.forEach((_, index) => selectedArticles.add(index));
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = true);
+    }
+    
+    updateSelectionUI();
+  }
+
+  function updateSelectionUI() {
+    if (!selectAllBtn || !publishSelectedBtn) return;
+    
+    const selectedCount = selectedArticles.size;
+    const totalCount = allArticles.length;
+    
+    // Update select all button text
+    if (selectedCount === totalCount) {
+      selectAllBtn.textContent = 'Deselect All';
+    } else {
+      selectAllBtn.textContent = 'Select All';
+    }
+    
+    // Update publish selected button
+    publishSelectedBtn.textContent = `Publish Selected (${selectedCount})`;
+    (publishSelectedBtn as HTMLButtonElement).disabled = selectedCount === 0;
+    
+    // Update button styling based on selection
+    if (selectedCount === 0) {
+      publishSelectedBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      publishSelectedBtn.classList.remove('hover:bg-green-200');
+    } else {
+      publishSelectedBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      publishSelectedBtn.classList.add('hover:bg-green-200');
+    }
+  }
+
+  async function publishSelected() {
+    if (selectedArticles.size === 0) {
+      showMessage('Please select at least one article to publish.', 'error');
+      return;
+    }
+
+    const selectedArticlesList = Array.from(selectedArticles).map(index => allArticles[index]);
+    
+    // Show confirmation
+    const confirmMessage = `Are you sure you want to publish ${selectedArticles.size} article(s)?`;
+    if (!confirm(confirmMessage)) return;
+
+    try {
+      const response = await fetch('/api/publish-articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ articles: selectedArticlesList })
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        console.error('Publish failed:', result);
+        showMessage(result.error || 'Failed to publish articles.', 'error');
+        return;
+      }
+
+      console.log('Published:', result.published);
+      showMessage(result.message || `Successfully published ${selectedArticles.size} article(s)!`, 'success');
+
+      // Clear selection after publishing
+      selectedArticles.clear();
+      const checkboxes = document.querySelectorAll('.article-checkbox') as NodeListOf<HTMLInputElement>;
+      checkboxes.forEach(checkbox => checkbox.checked = false);
+      updateSelectionUI();
+    } catch (err) {
+      console.error('Publish error:', err);
+      showMessage('An error occurred while publishing articles: ' + (err as Error).message, 'error');
+    }
+  }
+
+  // Global functions for article actions
+  (window as any).editArticle = function(index: number) {
+    const article = allArticles[index];
+    if (!article) return;
+    
+    // Create a modal/popup for editing
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-2xl font-bold text-brand-navy">Edit Article ${index + 1}</h3>
+          <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <form id="editForm" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Title *</label>
+            <input type="text" id="editTitle" value="${article.title.replace(/"/g, '&quot;')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Description *</label>
+            <textarea id="editDescription" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>${article.description}</textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-brand-navy mb-2">Author *</label>
+              <input type="text" id="editAuthor" value="${article.author}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-brand-navy mb-2">Category *</label>
+              <select id="editCategory" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy" required>
+                <option value="community" ${article.category === 'community' ? 'selected' : ''}>Community</option>
+                <option value="sports" ${article.category === 'sports' ? 'selected' : ''}>Sports</option>
+                <option value="business" ${article.category === 'business' ? 'selected' : ''}>Business</option>
+                <option value="government" ${article.category === 'government' ? 'selected' : ''}>Government</option>
+                <option value="education" ${article.category === 'education' ? 'selected' : ''}>Education</option>
+                <option value="events" ${article.category === 'events' ? 'selected' : ''}>Events</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Content *</label>
+            <textarea id="editContent" rows="15" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy font-mono text-sm" required>${article.content.map((c: any) => c.text).join('\n\n')}</textarea>
+            <p class="text-xs text-gray-500 mt-1">Edit the article content. Each paragraph will be separated automatically.</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-brand-navy mb-2">Tags (comma-separated)</label>
+            <input type="text" id="editTags" value="${article.tags.join(', ')}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-navy">
+          </div>
+          <div class="flex justify-end space-x-3 pt-4 border-t">
+            <button type="button" onclick="closeEditModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-brand-navy text-white rounded-lg hover:bg-brand-gray">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Handle form submission
+    const editForm = document.getElementById('editForm');
+    if (editForm) {
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveArticleEdits(index);
+      });
+    }
+  };
+
+  function saveArticleEdits(index: number) {
+    const title = (document.getElementById('editTitle') as HTMLInputElement)?.value;
+    const description = (document.getElementById('editDescription') as HTMLTextAreaElement)?.value;
+    const author = (document.getElementById('editAuthor') as HTMLInputElement)?.value;
+    const category = (document.getElementById('editCategory') as HTMLSelectElement)?.value;
+    const content = (document.getElementById('editContent') as HTMLTextAreaElement)?.value;
+    const tags = (document.getElementById('editTags') as HTMLInputElement)?.value.split(',').map(t => t.trim());
+    
+    // Update the article in memory
+    allArticles[index] = {
+      ...allArticles[index],
+      title,
+      description,
+      author,
+      category,
+      tags,
+      content: content.split('\n\n').filter(p => p.trim()).map(p => ({
+        type: 'paragraph',
+        text: p.trim()
+      })),
+      wordCount: content.split(/\s+/).length
+    };
+    
+    // Close modal and refresh display
+    (window as any).closeEditModal();
+    displayResults(allArticles);
+    showMessage('Article updated successfully!', 'success');
+  }
+
+  (window as any).closeEditModal = function() {
+    const modal = document.querySelector('.fixed.inset-0');
+    if (modal) {
+      modal.remove();
+    }
+  };
+
+  // Photo selection for articles
+  (window as any).selectPhotoForArticle = function(index: number) {
+    const article = allArticles[index];
+    if (!article) return;
+
+    if (allExtractedImages.length === 0) {
+      showMessage('No extracted images available. Please ensure image extraction is enabled.', 'error');
+      return;
+    }
+
+    // Create modal for photo selection
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto p-8">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <h3 class="text-2xl font-bold text-brand-navy">Select Photo for Article</h3>
+            <p class="text-sm text-gray-600 mt-1">${article.title}</p>
+          </div>
+          <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="mb-4">
+          <p class="text-sm text-gray-600">${allExtractedImages.length} images extracted from PDF. Click an image to select it for this article.</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="photoGrid">
+          ${allExtractedImages.map((img, imgIndex) => `
+            <div class="relative group cursor-pointer border-2 border-gray-200 rounded-lg overflow-hidden hover:border-brand-navy transition-colors"
+                 onclick="assignPhotoToArticle(${index}, ${imgIndex})">
+              <img src="/api/serve-image${img.path}"
+                   alt="Extracted image ${imgIndex + 1}"
+                   class="w-full h-48 object-cover">
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity flex items-center justify-center">
+                <svg class="w-12 h-12 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white text-xs p-2">
+                <div>Image ${imgIndex + 1}</div>
+                <div class="text-gray-300">Page ${img.page} • ${(img.size / 1024).toFixed(0)}KB</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div class="mt-6 flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="removePhotoFromArticle(${index})" class="px-6 py-2 border border-red-300 text-red-600 rounded-lg hover:bg-red-50">
+            Remove Photo
+          </button>
+          <button type="button" onclick="closePhotoModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Cancel
+          </button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+  };
+
+  (window as any).assignPhotoToArticle = async function(articleIndex: number, imageIndex: number) {
+    const image = allExtractedImages[imageIndex];
+    if (!image) return;
+
+    try {
+      // Copy image from temp location to permanent articles folder
+      const response = await fetch('/api/copy-article-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tempImagePath: image.path })
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        showMessage(`Failed to copy image: ${result.error}`, 'error');
+        return;
+      }
+
+      // Assign the permanent image path to the article
+      allArticles[articleIndex].image = result.permanentPath;
+
+      // Close modal and refresh display
+      (window as any).closePhotoModal();
+      displayResults(allArticles);
+      showMessage(`Photo assigned to "${allArticles[articleIndex].title}"`, 'success');
+    } catch (error) {
+      console.error('Error assigning photo:', error);
+      showMessage('Failed to assign photo: ' + (error as Error).message, 'error');
+    }
+  };
+
+  (window as any).removePhotoFromArticle = function(articleIndex: number) {
+    // Remove the image from the article
+    allArticles[articleIndex].image = null;
+
+    // Close modal and refresh display
+    (window as any).closePhotoModal();
+    displayResults(allArticles);
+    showMessage(`Photo removed from "${allArticles[articleIndex].title}"`, 'success');
+  };
+
+  (window as any).closePhotoModal = function() {
+    const modals = document.querySelectorAll('.fixed.inset-0');
+    modals.forEach(modal => modal.remove());
+  };
+
+  // Image extraction is handled server-side by the API using pdfimages
+  // All extracted images are returned in the API response for manual selection
+
+  } // Close the else block
+</script>

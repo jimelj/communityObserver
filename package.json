@@ -8,7 +8,9 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "admin": "cd admin && npm install && npm start",
+    "admin:install": "cd admin && npm install"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^8.0.0",
