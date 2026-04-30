@@ -1,5 +1,7 @@
 # Community Observer Website
 
+https://thecommunityobserver.com/
+
 A modern, responsive website for Community Observer newspaper built with Astro, Tailwind CSS, and Cloudflare Pages.
 
 ## 🌟 Features
